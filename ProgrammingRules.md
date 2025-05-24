@@ -1,5 +1,5 @@
 # Part I: 3 types BDD
-### (!!!!just for rules of programming, and the real code for creating BDD is in the branche EditDataBaseScripts) 
+### (!!!!just for rules of programming, and the real code for creating BDD is in the branche edit-database-scripts) 
 ## I. The 4 MongoDB collections:
 
 1.	Collection city
