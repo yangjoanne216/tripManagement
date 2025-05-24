@@ -1,0 +1,22 @@
+Match (n) DETACH DELETE n
+
+CREATE (m:City {
+  cityId: '507f191e810c19729de860a1',
+  name:   'Montréal',
+  latitude:  45.50,
+  longitude: -73.57
+})-[:LOCATED_AT {
+  distanceKm:    541,
+  travelTimeMin: 360
+}]->
+(t:City {
+  cityId: '507f191e810c19729de860a2',
+  name:   'Toronto',
+  latitude:  43.65,
+  longitude: -79.38
+});
+
+Match(n) return (n)
+
+CREATE CONSTRAINT cityIdUnique for (c:City)
+  require c.cityId IS UNIQUE;

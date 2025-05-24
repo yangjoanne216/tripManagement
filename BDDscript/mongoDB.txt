@@ -1,0 +1,214 @@
+brew services start mongodb-community@8.0 
+
+// 1) Create the database and collections
+use tripManagementDB;
+
+db.createCollection("city");
+db.createCollection("pointOfInterest");
+db.createCollection("activity");
+db.createCollection("accommodation");
+
+// 2) Define our shared IDs
+const city1Id = ObjectId("507f191e810c19729de860a1");
+const city2Id = ObjectId("507f191e810c19729de860a2");
+
+const poi1Id  = ObjectId("507f191e810c19729de860ea");
+const poi2Id  = ObjectId("507f191e810c19729de860eb");
+const poi3Id  = ObjectId("507f191e810c19729de860ec");
+const poi4Id  = ObjectId("507f191e810c19729de860ed");
+
+const act1Id  = ObjectId("507f191e810c19729de860f1");
+const act2Id  = ObjectId("507f191e810c19729de860f2");
+const act3Id  = ObjectId("507f191e810c19729de860f3");
+const act4Id  = ObjectId("507f191e810c19729de860f4");
+const act5Id  = ObjectId("507f191e810c19729de860f5");
+const act6Id  = ObjectId("507f191e810c19729de860f6");
+const act7Id  = ObjectId("507f191e810c19729de860f7");
+const act8Id  = ObjectId("507f191e810c19729de860f8");
+
+const acc1Id  = ObjectId("507f191e810c19729de860d1");
+const acc2Id  = ObjectId("507f191e810c19729de860d2");
+const acc3Id  = ObjectId("507f191e810c19729de860d3");
+const acc4Id  = ObjectId("507f191e810c19729de860d4");
+
+// 3) Insert cities (with denormalized sub-docs)
+db.city.insertMany([
+  {
+    _id: city1Id,
+    name: "Montréal",
+    photos: [
+      "https://example.com/montreal1.jpg",
+      "https://example.com/montreal2.jpg"
+    ],
+    geoInfo: { lat: 45.50, lon: -73.57 },
+    accommodations: [
+      { id: acc1Id, name: "Hotel X", price: 120, available: true },
+      { id: acc2Id, name: "Auberge Y", price:  90, available: false }
+    ],
+    pointsOfInterest: [
+      { id: poi1Id, name: "Biodôme" },
+      { id: poi2Id, name: "Notre-Dame Basilica" }
+    ]
+  },
+  {
+    _id: city2Id,
+    name: "Toronto",
+    photos: [
+      "https://example.com/toronto1.jpg",
+      "https://example.com/toronto2.jpg"
+    ],
+    geoInfo: { lat: 43.65, lon: -79.38 },
+    accommodations: [
+      { id: acc3Id, name: "Fairmont Royal York", price: 250, available: true },
+      { id: acc4Id, name: "The Drake Hotel", price: 180, available: true }
+    ],
+    pointsOfInterest: [
+      { id: poi3Id, name: "CN Tower" },
+      { id: poi4Id, name: "Royal Ontario Museum" }
+    ]
+  }
+]);
+
+// 4) Insert POIs
+db.pointOfInterest.insertMany([
+  {
+    _id: poi1Id,
+    name: "Biodôme",
+    photos: ["https://example.com/biodome1.jpg","https://example.com/biodome2.jpg"],
+    address: "4777 Pierre-De Coubertin Ave, Montréal, QC",
+    geoInfo: { lat: 45.56, lon: -73.55 },
+    city: { id: city1Id, name: "Montréal" }
+  },
+  {
+    _id: poi2Id,
+    name: "Notre-Dame Basilica",
+    photos: ["https://example.com/basilica1.jpg","https://example.com/basilica2.jpg"],
+    address: "110 Notre-Dame St W, Montréal, QC",
+    geoInfo: { lat: 45.50, lon: -73.56 },
+    city: { id: city1Id, name: "Montréal" }
+  },
+  {
+    _id: poi3Id,
+    name: "CN Tower",
+    photos: ["https://example.com/cntower1.jpg","https://example.com/cntower2.jpg"],
+    address: "290 Bremner Blvd, Toronto, ON",
+    geoInfo: { lat: 43.6426, lon: -79.3871 },
+    city: { id: city2Id, name: "Toronto" }
+  },
+  {
+    _id: poi4Id,
+    name: "Royal Ontario Museum",
+    photos: ["https://example.com/rom1.jpg","https://example.com/rom2.jpg"],
+    address: "100 Queens Park, Toronto, ON",
+    geoInfo: { lat: 43.6677, lon: -79.3948 },
+    city: { id: city2Id, name: "Toronto" }
+  }
+]);
+
+// 5) Insert Activities
+db.activity.insertMany([
+  {
+    _id: act1Id,
+    name: "Biodôme Tour",
+    pointOfInterest: { id: poi1Id, name: "Biodôme" },
+    photos: ["https://example.com/biodomeTour.jpg"],
+    seasons: ["April","May","June"],
+    price: { adult: 24, child: 15 }
+  },
+  {
+    _id: act2Id,
+    name: "Photography Workshop",
+    pointOfInterest: { id: poi1Id, name: "Biodôme" },
+    photos: ["https://example.com/photoWorkshop.jpg"],
+    seasons: ["May","June"],
+    price: { adult: 50, child: 30 }
+  },
+  {
+    _id: act3Id,
+    name: "Mass Attendance",
+    pointOfInterest: { id: poi2Id, name: "Notre-Dame Basilica" },
+    photos: ["https://example.com/mass.jpg"],
+    seasons: ["Year-round"],
+    price: { adult: 0, child: 0 }
+  },
+  {
+    _id: act4Id,
+    name: "Architecture Tour",
+    pointOfInterest: { id: poi2Id, name: "Notre-Dame Basilica" },
+    photos: ["https://example.com/archTour.jpg"],
+    seasons: ["June","July"],
+    price: { adult: 20, child: 10 }
+  },
+  {
+    _id: act5Id,
+    name: "Skypod Visit",
+    pointOfInterest: { id: poi3Id, name: "CN Tower" },
+    photos: ["https://example.com/skypod.jpg"],
+    seasons: ["Year-round"],
+    price: { adult: 38, child: 28 }
+  },
+  {
+    _id: act6Id,
+    name: "Edge Walk",
+    pointOfInterest: { id: poi3Id, name: "CN Tower" },
+    photos: ["https://example.com/edgeWalk.jpg"],
+    seasons: ["April","May","June"],
+    price: { adult: 225, child: 225 }
+  },
+  {
+    _id: act7Id,
+    name: "Exhibition Tour",
+    pointOfInterest: { id: poi4Id, name: "Royal Ontario Museum" },
+    photos: ["https://example.com/exhibit.jpg"],
+    seasons: ["Year-round"],
+    price: { adult: 23, child: 14 }
+  },
+  {
+    _id: act8Id,
+    name: "Workshop",
+    pointOfInterest: { id: poi4Id, name: "Royal Ontario Museum" },
+    photos: ["https://example.com/workshop.jpg"],
+    seasons: ["May","June"],
+    price: { adult: 50, child: 30 }
+  }
+]);
+
+// 6) Insert Accommodations
+db.accommodation.insertMany([
+  {
+    _id: acc1Id,
+    name: "Hotel X",
+    address: "123 Rue St-Pierre, Montréal, QC",
+    photos: ["https://example.com/hotelx1.jpg"],
+    city: { id: city1Id, name: "Montréal" },
+    price: 120,
+    available: true
+  },
+  {
+    _id: acc2Id,
+    name: "Auberge Y",
+    address: "456 Boulevard St-Laurent, Montréal, QC",
+    photos: ["https://example.com/aubergey1.jpg"],
+    city: { id: city1Id, name: "Montréal" },
+    price: 90,
+    available: false
+  },
+  {
+    _id: acc3Id,
+    name: "Fairmont Royal York",
+    address: "100 Front St W, Toronto, ON",
+    photos: ["https://example.com/fairmont1.jpg"],
+    city: { id: city2Id, name: "Toronto" },
+    price: 250,
+    available: true
+  },
+  {
+    _id: acc4Id,
+    name: "The Drake Hotel",
+    address: "1150 Queen St W, Toronto, ON",
+    photos: ["https://example.com/drake1.jpg"],
+    city: { id: city2Id, name: "Toronto" },
+    price: 180,
+    available: true
+  }
+]);
