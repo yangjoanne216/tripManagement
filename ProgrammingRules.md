@@ -232,3 +232,13 @@ Manages `:City` nodes and the `[:LOCATED_AT]` edges between them, plus path-find
 <img width="940" alt="Screenshot 2025-05-24 at 16 30 36" src="https://github.com/user-attachments/assets/7d37a4ae-26ed-4980-a143-d39ca7bf0885" />
 
 ## PS: We can also add **Lombox** dependency
+
+# Part IV: Name of branches
+Lowercase letters, separated by -
+
+Examples: 
+
+edit-database-scripts
+
+trip-service
+
