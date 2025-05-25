@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TripActivityDao
-        extends JpaRepository<TripActivity, TripActivityKey> { }
+        extends JpaRepository<TripActivity, TripActivityKey> {
+}

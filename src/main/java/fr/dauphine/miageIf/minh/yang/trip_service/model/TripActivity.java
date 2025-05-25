@@ -3,7 +3,7 @@ package fr.dauphine.miageIf.minh.yang.trip_service.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="trip_activity")
+@Table(name = "trip_activity")
 public class TripActivity {
     @EmbeddedId
     private TripActivityKey id;
