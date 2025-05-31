@@ -16,5 +16,6 @@ public class Edge {
     private int travelTimeMin;
 
     @TargetNode
+    @JsonIgnoreProperties("neighbours")
     private City city;
 }
