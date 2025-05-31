@@ -215,10 +215,10 @@ Manages `:City` nodes and the `[:LOCATED_AT]` edges between them, plus path-find
 
 | Method | URI | Description |
 |--------|-----|-------------|
-| **POST** | `/routes` | Create a new edge:<br>`{ sourceCityId, destinationCityId, distanceKm, travelTimeMin }` |
-| **PUT** | `/routes/{routeId}` | Update an edge’s distance or travel time |
-| **DELETE** | `/routes/{routeId}` | Delete an edge |
-| **GET** | `/routes?source=&destination=` | Get the direct distance + time between two cities (the existing edge) |
+| **POST** | `/edges` | Create a new edge:<br>`{ sourceCityId, destinationCityId, distanceKm, travelTimeMin }` |
+| **PUT** | `/edges/{routeId}` | Update an edge’s distance or travel time |
+| **DELETE** | `/edges/{routeId}` | Delete an edge |
+| **GET** | `/edges?source=&destination=` | Get the direct distance + time between two cities (the existing edge) |
 
 ### 3.3 Path-finding
 
