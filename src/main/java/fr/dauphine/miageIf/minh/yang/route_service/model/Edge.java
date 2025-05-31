@@ -8,6 +8,7 @@ import org.springframework.data.neo4j.core.schema.*;
 @Builder
 @Data
 @RelationshipProperties
+@EqualsAndHashCode(exclude = "city")  //确保 Edge.hashCode() 时不会去访问 city.hashCode()
 public class Edge {
     @RelationshipId
     @GeneratedValue

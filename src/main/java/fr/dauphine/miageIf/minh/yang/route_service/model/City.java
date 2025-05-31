@@ -15,9 +15,10 @@ import java.util.stream.Stream;
 
 @Node
 @Builder
-@Data
+@Data                            //生成 getter/setter/toString
 @NoArgsConstructor               // 生成无参构造
 @AllArgsConstructor              // 生成全参构造（cityId, name, neighbours）
+@EqualsAndHashCode(exclude = {"outgoingNeighbours", "incomingNeighbours"})  //Lombok 在生成 equals()/hashCode() 时会排除 outgoing/incoming 两个字段，
 public class City {
     @Id
     @Setter(AccessLevel.PRIVATE)
