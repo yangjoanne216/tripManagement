@@ -35,7 +35,7 @@ public class EdgeController {
             description = "Retrieve a list of all LOCATED_AT relationships (edges) between City nodes. " +
                     "Returns HTTP 200 OK and a JSON array of EdgeResponse objects."
     )
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<EdgeResponse>> getAllEdges() {
         List<EdgeResponse> edges = edgeService.getAllEdges();
         return ResponseEntity.ok(edges);
@@ -52,10 +52,10 @@ public class EdgeController {
                     "Returns HTTP 200 OK and a single EdgeResponse. " +
                     "If no such relationship exists, returns HTTP 404 Not Found."
     )
-    @GetMapping
+    @GetMapping("/{sourceCityId}/{destinationCityId}")
     public ResponseEntity<EdgeResponse> getEdgeByCities(
-            @RequestParam(name = "source") String sourceCityId,
-            @RequestParam(name = "destination") String destinationCityId
+            @PathVariable String sourceCityId,
+            @PathVariable String destinationCityId
     ) {
         EdgeResponse edge = edgeService.getEdgeBetween(sourceCityId, destinationCityId);
         return ResponseEntity.ok(edge);
@@ -99,14 +99,14 @@ public class EdgeController {
     @Operation(
             summary = "Update edge",
             description = "Update the properties (distanceKm and/or travelTimeMin) of an existing LOCATED_AT relationship " +
-                    "identified by routeId. Request body can contain one or both fields. " +
+                    "identified by ids of two cities. Request body can contain one or both fields. " +
                     "Returns HTTP 200 OK and the updated EdgeResponse. " +
-                    "If routeId does not exist, returns HTTP 404 Not Found."
+                    "If edge does not exist, returns HTTP 404 Not Found."
     )
-    @PutMapping
+    @PutMapping("/{sourceCityId}/{destinationCityId}")
     public ResponseEntity<EdgeResponse> updateEdgeByCities(
-            @RequestParam("source") String sourceCityId,
-            @RequestParam("destination") String destinationCityId,
+            @PathVariable String sourceCityId,
+            @PathVariable String destinationCityId,
             @RequestBody UpdateEdgeRequest request
     ) {
         EdgeResponse updated = edgeService.updateEdgeByCities(sourceCityId, destinationCityId, request);
@@ -119,10 +119,10 @@ public class EdgeController {
                     "Returns HTTP 204 No Content if deletion succeeds. " +
                     "If edge does not exist, returns HTTP 404 Not Found."
     )
-    @DeleteMapping
+    @DeleteMapping("/{sourceCityId}/{destinationCityId}")
     public ResponseEntity<Void> deleteEdgeByCities(
-            @RequestParam("source") String sourceCityId,
-            @RequestParam("destination") String destinationCityId
+            @PathVariable String sourceCityId,
+            @PathVariable String destinationCityId
     ) {
         edgeService.deleteEdgeByCities(sourceCityId, destinationCityId);
         return ResponseEntity.noContent().build();
