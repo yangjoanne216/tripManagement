@@ -11,4 +11,8 @@ public class EdgeNotFoundException extends RuntimeException {
     public EdgeNotFoundException(Long routeId) {
         super("Edge (route) with id " + routeId + " not found.");
     }
+
+    public EdgeNotFoundException(String sourceCityId,String destinationCityId) {
+        super("Edge (route) with cityId : "+ sourceCityId+" and cityId : "+destinationCityId+" not found.");
+    }
 }

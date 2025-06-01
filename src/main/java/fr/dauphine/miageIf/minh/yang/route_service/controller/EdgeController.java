@@ -1,13 +1,12 @@
 package fr.dauphine.miageIf.minh.yang.route_service.controller;
+
 import fr.dauphine.miageIf.minh.yang.route_service.dto.CreationEdgeRequest;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.EdgeResponse;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.UpdateEdgeRequest;
 import fr.dauphine.miageIf.minh.yang.route_service.service.EdgeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,31 +62,14 @@ public class EdgeController {
     }
 
     /**
-     * GET /edges/{routeId}
-     * 根据关系 ID 获取单个 Edge 详情。
-     * 200 OK + EdgeResponse JSON；若 routeId 不存在，则 404
-     */
-    @Operation(
-            summary = "Get edge by ID",
-            description = "Retrieve a single LOCATED_AT relationship by its internal Neo4j relationship ID (routeId). " +
-                    "Returns HTTP 200 OK and an EdgeResponse. " +
-                    "If the routeId does not exist, returns HTTP 404 Not Found."
-    )
-    @GetMapping("/{routeId}")
-    public ResponseEntity<EdgeResponse> getEdgeById(@PathVariable Long routeId) {
-        EdgeResponse edge = edgeService.getEdgeById(routeId);
-        return ResponseEntity.ok(edge);
-    }
-
-    /**
      * POST /edges
      * 创建一个新的 LOCATED_AT 关系。
      * 请求 JSON：
      * {
-     *   "sourceCityId": "...",
-     *   "destinationCityId": "...",
-     *   "distanceKm": 541,
-     *   "travelTimeMin": 360
+     * "sourceCityId": "...",
+     * "destinationCityId": "...",
+     * "distanceKm": 541,
+     * "travelTimeMin": 360
      * }
      * 成功：201 Created + Location: /edges/{routeId} + 响应体 EdgeResponse JSON
      * 若 sourceCityId 或 destinationCityId 不存在，则 404
@@ -121,21 +103,46 @@ public class EdgeController {
                     "Returns HTTP 200 OK and the updated EdgeResponse. " +
                     "If routeId does not exist, returns HTTP 404 Not Found."
     )
-    @PutMapping("/{routeId}")
+    @PutMapping
+    public ResponseEntity<EdgeResponse> updateEdgeByCities(
+            @RequestParam("source") String sourceCityId,
+            @RequestParam("destination") String destinationCityId,
+            @RequestBody UpdateEdgeRequest request
+    ) {
+        EdgeResponse updated = edgeService.updateEdgeByCities(sourceCityId, destinationCityId, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(
+            summary = "Delete edge",
+            description = "Delete the LOCATED_AT relationship identified by twoCitys. " +
+                    "Returns HTTP 204 No Content if deletion succeeds. " +
+                    "If edge does not exist, returns HTTP 404 Not Found."
+    )
+    @DeleteMapping
+    public ResponseEntity<Void> deleteEdgeByCities(
+            @RequestParam("source") String sourceCityId,
+            @RequestParam("destination") String destinationCityId
+    ) {
+        edgeService.deleteEdgeByCities(sourceCityId, destinationCityId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /*@PutMapping("/{routeId}")
     public ResponseEntity<EdgeResponse> updateEdge(
             @PathVariable Long routeId,
             @RequestBody UpdateEdgeRequest request
     ) {
         EdgeResponse updated = edgeService.updateEdge(routeId, request);
         return ResponseEntity.ok(updated);
-    }
+    }*/
 
     /**
      * DELETE /edges/{routeId}
      * 删除某条 LOCATED_AT 关系。惯用 204 No Content。
      * 204 No Content；若 routeId 不存在，则 404
      */
-    @Operation(
+    /*@Operation(
             summary = "Delete edge",
             description = "Delete the LOCATED_AT relationship identified by routeId. " +
                     "Returns HTTP 204 No Content if deletion succeeds. " +
@@ -145,5 +152,25 @@ public class EdgeController {
     public ResponseEntity<Void> deleteEdge(@PathVariable Long routeId) {
         edgeService.deleteEdge(routeId);
         return ResponseEntity.noContent().build();
+    }*/
+    /**
+     * GET /edges/{routeId}
+     * 根据关系 ID 获取单个 Edge 详情。
+     * 200 OK + EdgeResponse JSON；若 routeId 不存在，则 404
+     */
+    /*
+    @Operation(
+            summary = "Get edge by ID",
+            description = "Retrieve a single LOCATED_AT relationship by its internal Neo4j relationship ID (routeId). " +
+                    "Returns HTTP 200 OK and an EdgeResponse. " +
+                    "If the routeId does not exist, returns HTTP 404 Not Found."
+    )
+    @GetMapping("/{routeId}")
+    public ResponseEntity<EdgeResponse> getEdgeById(@PathVariable Long routeId) {
+        EdgeResponse edge = edgeService.getEdgeById(routeId);
+        return ResponseEntity.ok(edge);
     }
+    */
+
+
 }
