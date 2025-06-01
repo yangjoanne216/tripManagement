@@ -208,25 +208,134 @@ Manages `:City` nodes and the `[:LOCATED_AT]` edges between them, plus path-find
 
 | Method | URI | Description |
 |--------|-----|-------------|
-| **GET** | `/cities` | (Mirror of info-api) list all city nodes |
-| **GET** | `/cities/{cityId}/neighbors?maxDistanceKm=` | Find neighboring cities within the specified distance |
+| GET | `/cities` | List all city nodes |
+| GET | `/cities/{cityId}/neighbors?maxDistanceKm={maxDistance}` | Find neighboring cities of `{cityId}` within the specified distance (in km) |
+
+#### `GET /cities`
+
+- **Returns:** HTTP 200 and a JSON array of all `CityResponse` objects.
+
+#### `GET /cities/{cityId}/neighbors?maxDistanceKm={maxDistance}`
+
+- **Path variable:** `cityId` – the ID of the city whose neighbors you want.  
+- **Query param:** `maxDistanceKm` – maximum distance (in kilometers) from `cityId` to include.
+- **Returns:** HTTP 200 and a JSON array of `CityResponse` for all directly connected cities (`LOCATED_AT` edge) with `distanceKm ≤ maxDistanceKm`.
+- **Errors:**  
+  - If `cityId` does not exist → **HTTP 404** (`CityNotFoundException`)
 
 ### 3.2 Connection (edge) CRUD
 
 | Method | URI | Description |
 |--------|-----|-------------|
-| **POST** | `/edges` | Create a new edge:<br>`{ sourceCityId, destinationCityId, distanceKm, travelTimeMin }` |
-| **PUT** | `/edges/{routeId}` | Update an edge’s distance or travel time |
-| **DELETE** | `/edges/{routeId}` | Delete an edge |
-| **GET** | `/edges?source=&destination=` | Get the direct distance + time between two cities (the existing edge) |
+| GET | `/edges` | List all edges (`EdgeResponse`) |
+| GET | `/edges/{sourceCityId}/{destinationCityId}` | Get the direct `LOCATED_AT` edge between cities |
+| POST | `/edges` | Create a new edge |
+| PUT | `/edges/{sourceCityId}/{destinationCityId}` | Update an edge’s `distanceKm` and/or `travelTimeMin` |
+| DELETE | `/edges/{sourceCityId}/{destinationCityId}` | Delete the `LOCATED_AT` relationship |
 
+#### `GET /edges`
+
+- **Returns:** HTTP 200 and a JSON array of all `EdgeResponse` objects.
+  - Each contains: `sourceCityId`, `destinationCityId`, `distanceKm`, `travelTimeMin`, and `routeId`.
+
+#### `GET /edges/{sourceCityId}/{destinationCityId}`
+
+- **Returns:**  
+  - HTTP 200 and a single `EdgeResponse`  
+  - **Error:** If no edge exists → **HTTP 404** (`EdgeNotFoundException`)
+
+#### `POST /edges`
+
+- **Request body:**
+```json
+{
+  "sourceCityId": "...",
+  "destinationCityId": "...",
+  "distanceKm": 541,
+  "travelTimeMin": 360
+}
+```
+- If no such edge exists, returns HTTP 404 (EdgeNotFoundException). Otherwise returns HTTP 200 and a single EdgeResponse.
+
+#### `POST /edges`
+
+Request body must be JSON with fields:
+
+```json
+{
+  "sourceCityId": "...",
+  "destinationCityId": "...",
+  "distanceKm": 541,
+  "travelTimeMin": 360
+}
+```
+- If either sourceCityId or destinationCityId does not exist, returns HTTP 404 (CityNotFoundException).
+
+- If an edge between those two cities already exists (or if sourceCityId == destinationCityId), returns HTTP 409 (EdgeAlreadyExistsException or ResourceConflictException).
+
+- Otherwise returns HTTP 201 Created, with a Location: /edges/{sourceCityId}/{destinationCityId} header and the created EdgeResponse JSON.
+
+#### `PUT /edges/{sourceCityId}/{destinationCityId}`
+
+Request body may include one or both of:
+
+```json
+{ "distanceKm": 600 }
+```
+
+or
+
+```json
+{ "travelTimeMin": 400 }
+```
+
+or
+
+```json
+{ "distanceKm": 600, "travelTimeMin": 400 }
+```
+- If the path variables are missing/blank or neither field is present, returns HTTP 400 (BadRequestException).
+
+- If the edge doesn’t exist, returns HTTP 404 (EdgeNotFoundException).
+
+- If the new values are invalid (e.g., distanceKm ≤ 0), returns HTTP 400 (InvalidEdgePropertiesException).
+
+- If no actual change is detected between request and stored values, returns HTTP 400 (BadRequestException).
+
+- Otherwise returns HTTP 200 and the updated EdgeResponse.
+
+#### `DELETE /edges/{sourceCityId}/{destinationCityId}`
+
+- If either path variable is blank, returns HTTP 400 (BadRequestException).
+
+- If no such edge exists, returns HTTP 404 (EdgeNotFoundException).
+
+- If the edge is referenced by other resources (conflict), returns HTTP 409 (ResourceConflictException).
+
+- Otherwise deletes the edge and returns HTTP 204 No Content.
 ### 3.3 Path-finding
 
 | Method | URI | Description |
 |--------|-----|-------------|
-| **GET** | `/itineraries?source=&destination=` | Shortest path (list of `cityId`s) |
-| **GET** | `/itineraries?source=&destination=&maxStops=` | All routes from source → destination with ≤ `maxStops` intermediate nodes |
+| GET | `/itineraries?source={src}&destination={dst}` | Shortest path (list of cityIds) from `src` → `dst` |
+| GET | `/itineraries?source={src}&destination={dst}&maxStops={n}` | All routes from `src` → `dst` with ≤ `maxStops` intermediate nodes |
 
+
+#### GET `/itineraries?source={src}&destination={dst}`
+
+- **Description**: Returns a JSON array of `cityId` strings representing the **shortest-distance path** (by sum of `distanceKm`) from `{src}` to `{dst}`.
+- **Response**:  
+  - `HTTP 200`: with an array of city IDs  
+  - `HTTP 404`: if `{src}` or `{dst}` does not exist (`CityNotFoundException`)  
+  - `HTTP 404` or empty array: if no path exists (implementation dependent)
+
+#### GET `/itineraries?source={src}&destination={dst}&maxStops={n}`
+
+- **Description**: Returns a JSON array of arrays. Each inner array is a sequence of `cityIds` representing a valid route from `{src}` to `{dst}` with **at most `n` intermediate stops**.
+- **Response**:  
+  - `HTTP 200`: with array of valid routes  
+  - `HTTP 404`: if `{src}` or `{dst}` does not exist (`CityNotFoundException`)  
+  - `HTTP 404` or empty array: if no such routes exist (implementation dependent)
 
 # Part III:  Initializing the Project with Spring Initializr
 <img width="940" alt="Screenshot 2025-05-24 at 16 30 36" src="https://github.com/user-attachments/assets/7d37a4ae-26ed-4980-a143-d39ca7bf0885" />
