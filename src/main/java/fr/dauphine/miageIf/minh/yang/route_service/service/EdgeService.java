@@ -35,7 +35,7 @@ public class EdgeService {
     @Transactional(readOnly = true)
     public List<EdgeResponse> getAllEdges() {
         String cypher = ""
-                + "MATCH (s:City)-[r:LOCATED_AT]->(d:City) "
+                + "MATCH (s:City)-[r:LOCATED_AT]-(d:City) "
                 + "RETURN id(r) AS routeId, s.cityId AS srcId, d.cityId AS dstId, "
                 + "r.distanceKm AS dKm, r.travelTimeMin AS tMin";
 
@@ -63,7 +63,7 @@ public class EdgeService {
         }
 
         String cypher = ""
-                + "MATCH (s:City {cityId: $srcId})-[r:LOCATED_AT]->(d:City {cityId: $dstId}) "
+                + "MATCH (s:City {cityId: $srcId})-[r:LOCATED_AT]-(d:City {cityId: $dstId}) "
                 + "RETURN id(r) AS relId, r.distanceKm AS dKm, r.travelTimeMin AS tMin";
 
         Map<String,Object> rec = neo4jClient.query(cypher)
@@ -90,7 +90,7 @@ public class EdgeService {
 
         // 通过 Neo4jClient 或者 fetch relationship 节点都行。此处用 Cypher：
         String cypher = ""
-                + "MATCH ()-[r:LOCATED_AT]->() WHERE id(r) = $rid "
+                + "MATCH ()-[r:LOCATED_AT]-() WHERE id(r) = $rid "
                 + "RETURN id(r) AS relId, r.distanceKm AS dKm, r.travelTimeMin AS tMin, "
                 + "startNode(r).cityId AS srcId, endNode(r).cityId AS dstId";
 
@@ -161,7 +161,7 @@ public class EdgeService {
         boolean setTime = request.getTravelTimeMin() != null;
 
         StringBuilder cypher = new StringBuilder();
-        cypher.append("MATCH ()-[r:LOCATED_AT]->() WHERE id(r) = $rid ");
+        cypher.append("MATCH ()-[r:LOCATED_AT]-() WHERE id(r) = $rid ");
 
         if (setDistance && setTime) {
             cypher.append("SET r.distanceKm = $newD, r.travelTimeMin = $newT ");

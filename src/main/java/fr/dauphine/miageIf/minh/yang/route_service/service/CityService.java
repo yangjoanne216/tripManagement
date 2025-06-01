@@ -83,9 +83,9 @@ public class CityService {
         if (!cityDao.existsById(cityId)) {
             throw new CityNotFoundException(cityId);
         }
-        // 自定义 Cypher 查询：MATCH (c)-[r:LOCATED_AT]->(n) WHERE r.distanceKm <= maxDistanceKm RETURN n, r
+        // 自定义 Cypher 查询：MATCH (c)-[r:LOCATED_AT]- (n) WHERE r.distanceKm <= maxDistanceKm RETURN n, r
         String cypher = ""
-                + "MATCH (c:City {cityId: $cityIdParam})-[r:LOCATED_AT]->(n:City) "
+                + "MATCH (c:City {cityId: $cityIdParam})-[r:LOCATED_AT]-(n:City) "
                 + "WHERE r.distanceKm <= $maxDistanceParam "
                 + "RETURN n.cityId AS neighborId, n.name AS neighborName, r.distanceKm AS dKm, r.travelTimeMin AS tMin";
 

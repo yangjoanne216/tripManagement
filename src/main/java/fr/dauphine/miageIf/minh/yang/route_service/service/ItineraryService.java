@@ -36,7 +36,7 @@ public class ItineraryService {
 
         String cypher = ""
                 + "MATCH (s:City {cityId: $srcId}), (d:City {cityId: $dstId}), "
-                + "p = shortestPath((s)-[:LOCATED_AT*]->(d)) "
+                + "p = shortestPath((s)-[:LOCATED_AT*]-(d)) "
                 + "RETURN [n IN nodes(p) | n.cityId] AS cityList";
 
         Map<String,Object> rec = neo4jClient.query(cypher)
@@ -75,7 +75,7 @@ public class ItineraryService {
         int maxHops = maxStops + 1;
         String cypher = String.format(
                 "MATCH (s:City {cityId: $srcId}), (d:City {cityId: $dstId}), "
-                        + "p = (s)-[:LOCATED_AT*..%d]->(d) "
+                        + "p = (s)-[:LOCATED_AT*..%d]-(d) "
                         + "RETURN [n IN nodes(p) | n.cityId] AS cityList",
                 maxHops
         );
