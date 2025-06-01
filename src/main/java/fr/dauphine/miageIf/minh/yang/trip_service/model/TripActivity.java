@@ -1,9 +1,17 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "trip_activity")
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class TripActivity {
     @EmbeddedId
     private TripActivityKey id;

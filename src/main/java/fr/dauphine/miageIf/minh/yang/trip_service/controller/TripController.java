@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,5 +87,21 @@ public class TripController {
     public ResponseEntity<Void> delete(@PathVariable Long tripId) {
         tripService.deleteTrip(tripId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(params = {"startDate", "endDate", "minDays", "maxDays"})
+    @Operation(
+            summary = "Search trips",
+            description = "Searches a trip based on startDate/endDate/minDays/maxDays"
+    )
+    public List<TripSummary> search(
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Integer minDays,
+            @RequestParam(required = false) Integer maxDays
+    ) {
+        return tripService.searchTrips(startDate, endDate, minDays, maxDays).stream()
+                .map(TripSummary::fromEntity)
+                .collect(Collectors.toList());
     }
 }

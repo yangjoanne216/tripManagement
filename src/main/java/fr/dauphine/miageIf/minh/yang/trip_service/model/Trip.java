@@ -1,6 +1,10 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,8 +12,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "trip")
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class Trip {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,56 +40,5 @@ public class Trip {
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     private List<TripAccommodation> accommodations = new ArrayList<>();
-
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-
-    public List<TripActivity> getActivities() {
-        return activities;
-    }
-
-    public void setActivities(List<TripActivity> activities) {
-        this.activities = activities;
-    }
-
-    public List<TripAccommodation> getAccommodations() {
-        return accommodations;
-    }
-
-    public void setAccommodations(List<TripAccommodation> accommodations) {
-        this.accommodations = accommodations;
-    }
 }
 

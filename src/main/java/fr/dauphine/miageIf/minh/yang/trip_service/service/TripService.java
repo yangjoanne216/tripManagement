@@ -12,7 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TripService {
@@ -111,4 +115,14 @@ public class TripService {
         tripDao.deleteById(id);
     }
 
+    public List<Trip> searchTrips(LocalDate startDate, LocalDate endDate, Integer minDays, Integer maxDays) {
+        return tripDao.findByDateRange(startDate, endDate).stream()
+                .filter(t -> {
+                    long days = ChronoUnit.DAYS.between(t.getStartDate(), t.getEndDate()) + 1;
+                    if (minDays != null && days < minDays) return false;
+                    if (maxDays != null && days > maxDays) return false;
+                    return true;
+                })
+                .collect(Collectors.toList());
+    }
 }
