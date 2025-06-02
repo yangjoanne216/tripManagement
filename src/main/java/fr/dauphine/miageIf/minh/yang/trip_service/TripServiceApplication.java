@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenAPIDefinition(info = @Info(title = "trip service backend",
         description = "trip service endpoints and apis",
         contact = @Contact(name = "Yang", email = "yangyang2@dauphine.eu"),
-        version = "1.0.0"))
+        version = "2.0.0"))
 public class TripServiceApplication {
 
     public static void main(String[] args) {
