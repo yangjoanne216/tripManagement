@@ -79,6 +79,7 @@ ALTER TABLE trip
   ADD COLUMN end_city   TEXT ;
 ```
 //TODO：make start_city/ end_city NOT NULL
+
 7.	Table trip_accommodation
 ```sql
 CREATE TABLE trip_accommodation (
