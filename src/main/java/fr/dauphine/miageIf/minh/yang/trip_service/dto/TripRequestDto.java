@@ -44,4 +44,16 @@ public class TripRequestDto {
     @Size(min = 0, message = "days list size must be ≥ 0")
     @Valid
     private List<DayDto> days;
+
+    /**
+     * 出发城市 ID，必须是 Route Service 中已存在的 cityId
+     */
+    @NotBlank(message = "startCity must not be blank")
+    private String startCity;
+
+    /**
+     * 目的城市 ID，必须是 Route Service 中已存在的 cityId
+     */
+    @NotBlank(message = "endCity must not be blank")
+    private String endCity;
 }

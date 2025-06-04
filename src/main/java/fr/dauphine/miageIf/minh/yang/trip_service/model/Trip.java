@@ -29,6 +29,12 @@ public class Trip {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
+    @Column(name = "start_city", nullable = false)
+    private String startCity;
+
+    @Column(name = "end_city", nullable = false)
+    private String endCity;
+
     @OneToMany(mappedBy = "trip",
             cascade = CascadeType.ALL,
             orphanRemoval = true,

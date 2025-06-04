@@ -1,10 +1,12 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.service;
 
+import feign.FeignException;
 import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripAccommodationDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripActivityDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dto.*;
 import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.ResourceNotFoundException;
+import fr.dauphine.miageIf.minh.yang.trip_service.feign.TripInterface;
 import fr.dauphine.miageIf.minh.yang.trip_service.model.*;
 
 import jakarta.persistence.EntityManager;
@@ -23,14 +25,32 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TripService {
     private final TripDao tripDao;
-    private final TripActivityDao tripActivityDao;
-    private final TripAccommodationDao tripAccommodationDao;
+    private final TripInterface tripInterface;
+    //private final TripActivityDao tripActivityDao;
+    //private final TripAccommodationDao tripAccommodationDao;
 
     /**
      * 创建一个新的 Trip，并连同 TripActivity、TripAccommodation 一并入库
      */
     @Transactional
     public TripDetail createTrip(TripRequestDto requestDto) {
+        try {
+          City fromCity = tripInterface.getCityById(requestDto.getStartCity()).getBody();
+            // if no exception, city exists
+        } catch (FeignException.NotFound nf) {
+            throw new ResourceNotFoundException("Start city not found: " + requestDto.getStartCity());
+        } catch (FeignException fe) {
+            throw new RuntimeException("Route service unreachable", fe);
+        }
+
+        try {
+            City toCity = tripInterface.getCityById(requestDto.getEndCity()).getBody();
+        } catch (FeignException.NotFound nf) {
+            throw new ResourceNotFoundException("End city not found: " + requestDto.getEndCity());
+        } catch (FeignException fe) {
+            throw new RuntimeException("Route service unavailable when validating endCity", fe);
+        }
+
         // 1. 新建 Trip 实体
         Trip trip = new Trip();
         trip.setName(requestDto.getName());
