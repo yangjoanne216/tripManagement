@@ -74,7 +74,11 @@ CREATE TABLE trip_activity (
   activity_id   TEXT    NOT NULL,
   PRIMARY KEY (trip_id, day, sequence)
 );
+ALTER TABLE trip
+  ADD COLUMN start_city TEXT ,
+  ADD COLUMN end_city   TEXT ;
 ```
+//TODO：make start_city/ end_city NOT NULL
 7.	Table trip_accommodation
 ```sql
 CREATE TABLE trip_accommodation (
