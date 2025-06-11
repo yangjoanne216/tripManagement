@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
+@Tag(name = "City API", description = "Endpoints for managing cities")
 @RequestMapping("/cities")
 public class CityController {
 
