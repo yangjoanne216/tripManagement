@@ -2,10 +2,13 @@ package fr.dauphine.miageIf.minh.yang.info_service.service;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dao.AccommodationRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.AccommodationMapper;
 import fr.dauphine.miageIf.minh.yang.info_service.model.Accommodation;
+import fr.dauphine.miageIf.minh.yang.info_service.model.City;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,21 +19,19 @@ import java.util.stream.Collectors;
 public class AccommodationService {
 
     private final AccommodationRepository accRepo;
+    @Qualifier("accommodationMapperImpl")
     private final AccommodationMapper mapper;
 
-    public AccommodationDto create(AccommodationDto dto) {
+    public AccommodationDto create(AccommodationUpdateOrCreateDto dto) {
         Accommodation entity = mapper.toEntity(dto);
         Accommodation saved = accRepo.save(entity);
         return mapper.toDto(saved);
     }
 
-    public AccommodationDto update(String id, AccommodationDto dto) {
-        if (!accRepo.existsById(id)) {
-            throw new ResourceNotFoundException("Accommodation not found: " + id);
-        }
-        Accommodation entity = mapper.toEntity(dto);
-        entity.setId(id);
-        Accommodation saved = accRepo.save(entity);
+    public AccommodationDto update(String id, AccommodationUpdateOrCreateDto dto) {
+        Accommodation existing = accRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Accomondation not found: " + id));
+        mapper.updateEntityFromDto(dto, existing);
+        Accommodation saved = accRepo.save(existing);
         return mapper.toDto(saved);
     }
 

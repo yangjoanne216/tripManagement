@@ -2,10 +2,13 @@ package fr.dauphine.miageIf.minh.yang.info_service.service;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dao.PointOfInterestRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.PointOfInterestDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.PointOfInterestUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.PointOfInterestMapper;
+import fr.dauphine.miageIf.minh.yang.info_service.model.City;
 import fr.dauphine.miageIf.minh.yang.info_service.model.PointOfInterest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,21 +19,19 @@ import java.util.stream.Collectors;
 public class PointOfInterestService {
 
     private final PointOfInterestRepository poiRepo;
+    @Qualifier("pointOfInterestMapperImpl")
     private final PointOfInterestMapper mapper;
 
-    public PointOfInterestDto create(PointOfInterestDto dto) {
+    public PointOfInterestDto create(PointOfInterestUpdateOrCreateDto dto) {
         PointOfInterest entity = mapper.toEntity(dto);
         PointOfInterest saved = poiRepo.save(entity);
         return mapper.toDto(saved);
     }
 
-    public PointOfInterestDto update(String id, PointOfInterestDto dto) {
-        if (!poiRepo.existsById(id)) {
-            throw new ResourceNotFoundException("POI not found: " + id);
-        }
-        PointOfInterest entity = mapper.toEntity(dto);
-        entity.setId(id);
-        PointOfInterest saved = poiRepo.save(entity);
+    public PointOfInterestDto update(String id, PointOfInterestUpdateOrCreateDto dto) {
+        PointOfInterest existing = poiRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Point of interest not found: " + id));
+        mapper.updateEntityFromDto(dto, existing);
+        PointOfInterest saved = poiRepo.save(existing);
         return mapper.toDto(saved);
     }
 

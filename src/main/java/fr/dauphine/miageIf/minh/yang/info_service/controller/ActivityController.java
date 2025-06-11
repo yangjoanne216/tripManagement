@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.service.ActivityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ public class ActivityController {
     @PostMapping
     public ResponseEntity<ActivityDto> create(
             @Parameter(description = "ActivityDto containing name, poi reference, photos, seasons, and price", required = true)
-            @Valid @RequestBody ActivityDto dto
+            @Valid @RequestBody ActivityUpdateOrCreateDto dto
     ) {
         ActivityDto created = service.create(dto);
         return ResponseEntity.status(201).body(created);
@@ -47,7 +48,7 @@ public class ActivityController {
     @PutMapping("/{id}")
     public ResponseEntity<ActivityDto> update(
             @Parameter(description = "ID of the activity to update", required = true) @PathVariable String id,
-            @Parameter(description = "ActivityDto containing updated fields", required = true) @Valid @RequestBody ActivityDto dto
+            @Parameter(description = "ActivityDto containing updated fields", required = true) @Valid @RequestBody ActivityUpdateOrCreateDto dto
     ) {
         ActivityDto updated = service.update(id, dto);
         return ResponseEntity.ok(updated);

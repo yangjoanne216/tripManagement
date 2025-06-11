@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.service.AccommodationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ public class AccmmodationController {
     @PostMapping
     public ResponseEntity<AccommodationDto> create(
             @Parameter(description = "AccommodationDto containing name, address, photos, city, price, and availability", required = true)
-            @Valid @RequestBody AccommodationDto dto
+            @Valid @RequestBody AccommodationUpdateOrCreateDto dto
     ) {
         AccommodationDto created = service.create(dto);
         return ResponseEntity.status(201).body(created);
@@ -47,7 +48,7 @@ public class AccmmodationController {
     @PutMapping("/{id}")
     public ResponseEntity<AccommodationDto> update(
             @Parameter(description = "ID of the accommodation to update", required = true) @PathVariable String id,
-            @Parameter(description = "AccommodationDto containing updated fields", required = true) @Valid @RequestBody AccommodationDto dto
+            @Parameter(description = "AccommodationDto containing updated fields", required = true) @Valid @RequestBody AccommodationUpdateOrCreateDto dto
     ) {
         AccommodationDto updated = service.update(id, dto);
         return ResponseEntity.ok(updated);

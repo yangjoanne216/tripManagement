@@ -1,15 +1,12 @@
 package fr.dauphine.miageIf.minh.yang.info_service.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class ActivityDto {
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String id;
+public class ActivityUpdateOrCreateDto {
     @NotBlank
     private String name;
     private PoiRefDto pointOfInterest;

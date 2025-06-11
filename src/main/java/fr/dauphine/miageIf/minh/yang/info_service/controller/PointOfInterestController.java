@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.PointOfInterestDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.PointOfInterestUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.service.PointOfInterestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ public class PointOfInterestController {
     @PostMapping
     public ResponseEntity<PointOfInterestDto> create(
             @Parameter(description = "PointOfInterestDto containing name, photos, address, geoInfo, and city ref", required = true)
-            @Valid @RequestBody PointOfInterestDto dto
+            @Valid @RequestBody PointOfInterestUpdateOrCreateDto dto
     ) {
         PointOfInterestDto created = service.create(dto);
         return ResponseEntity.status(201).body(created);
@@ -47,7 +48,7 @@ public class PointOfInterestController {
     @PutMapping("/{id}")
     public ResponseEntity<PointOfInterestDto> update(
             @Parameter(description = "ID of the POI to update", required = true) @PathVariable String id,
-            @Parameter(description = "PointOfInterestDto containing updated fields", required = true) @Valid @RequestBody PointOfInterestDto dto
+            @Parameter(description = "PointOfInterestDto containing updated fields", required = true) @Valid @RequestBody PointOfInterestUpdateOrCreateDto dto
     ) {
         PointOfInterestDto updated = service.update(id, dto);
         return ResponseEntity.ok(updated);
