@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-public class CityUpdateDto {
+public class CityUpdateOrCreateDto {
     //private String id;
     @NotBlank(message = "name must not be blank")
     @Size(max = 200)

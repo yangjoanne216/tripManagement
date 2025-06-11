@@ -1,5 +1,6 @@
 package fr.dauphine.miageIf.minh.yang.info_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CityDto {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
     @NotBlank(message = "name must not be blank")
     @Size(max = 200)

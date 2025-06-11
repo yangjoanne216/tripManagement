@@ -1,13 +1,11 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.CityDto;
-import fr.dauphine.miageIf.minh.yang.info_service.dto.CityUpdateDto;
-import fr.dauphine.miageIf.minh.yang.info_service.model.City;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.CityUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.service.CityService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +36,7 @@ public class CityController {
     @PostMapping
     public ResponseEntity<CityDto> create(
             @Parameter(description = "CityDto object containing name, photos, geoInfo, accommodations and pointsOfInterest", required = true)
-            @Valid @RequestBody CityDto dto
+            @Valid @RequestBody CityUpdateOrCreateDto dto
     ) {
         CityDto created = cityService.create(dto);
         return ResponseEntity.status(201).body(created);
@@ -56,7 +54,7 @@ public class CityController {
     @PutMapping("/{id}")
     public ResponseEntity<CityDto> update(
             @Parameter(description = "ID of the city to update", required = true) @PathVariable String id,
-            @Parameter(description = "Updated CityDto object", required = true) @Valid @RequestBody CityUpdateDto dto
+            @Parameter(description = "Updated CityDto object", required = true) @Valid @RequestBody CityUpdateOrCreateDto dto
     ) {
         CityDto updated = cityService.update(id, dto);
         return ResponseEntity.ok(updated);
