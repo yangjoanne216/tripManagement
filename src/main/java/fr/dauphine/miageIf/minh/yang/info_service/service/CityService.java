@@ -2,11 +2,12 @@ package fr.dauphine.miageIf.minh.yang.info_service.service;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dao.CityRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.CityDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.CityUpdateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.CityMapper;
 import fr.dauphine.miageIf.minh.yang.info_service.model.City;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,10 +25,11 @@ public class CityService {
         return cityMapper.toDto(entity);
     }
 
-    public CityDto update(String id, CityDto dto) {
+    public CityDto update(String id, @Valid CityUpdateDto cityUpdateDto) {
         City existing = cityRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("City not found: " + id));
         //Set the ID so save() will perform an upsert
-        City entity = cityMapper.toEntity(dto);
+        CityDto cityDto = cityMapper.addId(existing.getId(),cityUpdateDto);
+        City entity = cityMapper.toEntity(cityDto);
         entity.setId(id);
         City saved = cityRepo.save(entity);
         return cityMapper.toDto(saved);

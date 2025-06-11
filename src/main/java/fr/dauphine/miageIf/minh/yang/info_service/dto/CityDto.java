@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
 public class CityDto {
     private String id;
     @NotBlank(message = "name must not be blank")

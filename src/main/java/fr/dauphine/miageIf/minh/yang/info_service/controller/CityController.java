@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.CityDto;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.CityUpdateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.model.City;
 import fr.dauphine.miageIf.minh.yang.info_service.service.CityService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,7 +55,7 @@ public class CityController {
     @PutMapping("/{id}")
     public ResponseEntity<CityDto> update(
             @Parameter(description = "ID of the city to update", required = true) @PathVariable String id,
-            @Parameter(description = "Updated CityDto object", required = true) @Valid @RequestBody CityDto dto
+            @Parameter(description = "Updated CityDto object", required = true) @Valid @RequestBody CityUpdateDto dto
     ) {
         CityDto updated = cityService.update(id, dto);
         return ResponseEntity.ok(updated);
