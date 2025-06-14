@@ -1,0 +1,52 @@
+// 0) 清空图
+MATCH (n) DETACH DELETE n;
+
+// 1) 约束与索引
+CREATE CONSTRAINT cityIdUnique IF NOT EXISTS
+  FOR (c:City) REQUIRE c.cityId IS UNIQUE;
+
+CREATE INDEX cityNameIndex IF NOT EXISTS
+  FOR (c:City) ON (c.name);
+
+// 2) 创建所有 City 节点
+CREATE 
+  // 北美
+  (m:City {cityId:'507f191e810c19729de860a1', name:'Montréal', latitude:45.50, longitude:-73.57}),
+  (t:City {cityId:'507f191e810c19729de860a2', name:'Toronto',  latitude:43.65, longitude:-79.38}),
+  // 法国
+  (p:City {cityId:'507f191e810c19729de860b1', name:'Paris',      latitude:48.8566, longitude:2.3522}),
+  (a:City {cityId:'507f191e810c19729de860b2', name:'Amiens',     latitude:49.8941, longitude:2.2958}),
+  (s:City {cityId:'507f191e810c19729de860b3', name:'Strasbourg', latitude:48.5734, longitude:7.7521}),
+  (ly:City{cityId:'507f191e810c19729de860b4', name:'Lyon',       latitude:45.7640, longitude:4.8357}),
+  (to:City{cityId:'507f191e810c19729de860b5', name:'Toulouse',   latitude:43.6047, longitude:1.4442}),
+  (g:City {cityId:'507f191e810c19729de860b6', name:'Grenoble',   latitude:45.1885, longitude:5.7245}),
+  (d:City {cityId:'507f191e810c19729de860b7', name:'Dijon',      latitude:47.3220, longitude:5.0415}),
+  (lh:City{cityId:'507f191e810c19729de860b8', name:'Le Havre',   latitude:49.4944, longitude:0.1079});
+
+// 3) 动态计算并创建 LOCATED_AT 关系
+WITH [
+  ['Montréal','Toronto'],
+  ['Paris','Amiens'],
+  ['Amiens','Strasbourg'],
+  ['Strasbourg','Paris'],
+  ['Grenoble','Strasbourg'],
+  ['Lyon','Paris'],
+  ['Lyon','Grenoble'],
+  ['Lyon','Dijon'],
+  ['Dijon','Paris'],
+  ['Le Havre','Paris'],
+  ['Toulouse','Paris'],
+  ['Toulouse','Lyon']
+] AS edges
+UNWIND edges AS pair
+MATCH (c1:City {name: pair[0]}), (c2:City {name: pair[1]})
+WITH
+  c1, c2,
+  point.distance(
+    point({latitude:c1.latitude, longitude:c1.longitude}),
+    point({latitude:c2.latitude, longitude:c2.longitude})
+  ) AS distMeters
+MERGE (c1)-[r:LOCATED_AT]->(c2)
+SET
+  r.distanceKm    = round(distMeters / 1000.0, 1),
+  r.travelTimeMin = toInteger(round((distMeters / 1000.0) / 80 * 60, 0));
