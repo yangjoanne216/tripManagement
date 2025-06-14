@@ -1,0 +1,113 @@
+/*IV. Requests
+1.Quels sont les villes situées à moins de 10km d’une ville donnée ?
+2.Quelles sont les activités associées à un point d’intérêt donné ?
+3. Quels sont les hébergements d’une ville ?
+4. Quelle est le temps de trajet et la distance entre 2 villes données ?
+5. Quelles activités se font entre avril et juin ?
+6. Etant données une ville de départ et une ville d’arrivée, quels sont les différentes villes possibles à
+visiter entre les 2 ?*/
+
+
+//2.Quelles sont les activités associées à un point d’intérêt donné ?  poiId="507f191e810c19729de860ea"
+//Methode 1 :
+db.activity.find(
+  { "pointOfInterest.id": ObjectId("507f191e810c19729de860ea") },
+  {
+    name:    1,
+    photos:  1,
+    seasons: 1,
+    price:   1,
+    _id:     0
+  }
+);
+
+//Methode 2 :
+db.pointOfInterest.aggregate([
+  {
+    $match: { _id: ObjectId("507f191e810c19729de860ea") }
+  },
+  {
+    $lookup: {
+      from:         "activity",
+      localField:   "_id",
+      foreignField: "pointOfInterest.id",
+      as:           "activities"
+    }
+  },
+  {
+    $project: {
+      _id:        0,
+      poiName:    "$name",
+      poiAddress: "$address",
+      activities: {
+        name:    1,
+        seasons: 1,
+        price:   1,
+        photos:  1
+      }
+    }
+  }
+]);
+
+
+//3. Quels sont les hébergements d’une ville ?
+
+//Methode 1 :
+const cityId = ObjectId("507f191e810c19729de860a1");
+db.accommodation.find(
+  { "city.id": cityId },
+  {
+    name:      1,
+    address:   1,
+    photos:    1,
+    price:     1,
+    available: 1,
+    _id:       0
+  }
+);
+
+// Methode 2 :
+const cityId = ObjectId("507f191e810c19729de860a1");
+
+db.city.aggregate([
+  { 
+    $match: { _id: cityId } 
+  },
+  {
+    $lookup: {
+      from:         "accommodation",    // collection à joindre
+      localField:   "_id",              // _id de city
+      foreignField: "city.id",          // champ embarqué dans accommodation
+      as:           "hebergements"      // nom du tableau résultat
+    }
+  },
+  {
+    $project: {
+      _id:           0,
+      ville:         "$name",
+      hebergements: {
+        name:      1,
+        address:   1,
+        photos:    1,
+        price:     1,
+        available: 1
+      }
+    }
+  }
+]);
+
+//5. Quelles activités se font entre avril et juin ?
+db.activity.find(
+  {
+    seasons: { 
+      $in: ["April", "May", "June"] 
+    }
+  },
+  {
+    _id:     0,
+    name:    1,
+    seasons: 1,
+    price:   1,
+    photos:  1
+  }
+);
