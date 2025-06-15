@@ -1,4 +1,6 @@
 
+//nom de database
+use tripManagementDB 
 //Quelles sont les activités associées à un point d’intérêt donné ?  poiId="507f191e810c19729de860ea"
 //Methode 1 :
 db.activity.find(
@@ -97,8 +99,6 @@ db.activity.find(
   {
     _id:     0,
     name:    1,
-    seasons: 1,
-    price:   1,
-    photos:  1
+    seasons: 1
   }
 );

@@ -1,4 +1,4 @@
--- 8) 示例数据插入
+-- insertions for the trip "Montreal & Toronto Tour"
 INSERT INTO trip(id, name, start_date, end_date)
 VALUES
   (1, 'Montreal & Toronto Tour', '2025-07-01', '2025-07-04');

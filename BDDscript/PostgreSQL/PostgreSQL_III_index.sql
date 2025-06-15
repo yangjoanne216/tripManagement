@@ -1,4 +1,4 @@
--- 7) 为常用查询添加索引
+--add indexes to speed up queries
 CREATE INDEX idx_trip_activity_trip_day
   ON trip_activity(trip_id, day);
 CREATE INDEX idx_trip_activity_by_activity

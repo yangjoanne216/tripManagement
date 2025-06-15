@@ -1,19 +1,19 @@
-// 0) 清空图
+// 0) Clear the graph
 MATCH (n) DETACH DELETE n;
 
-// 1) 约束与索引
+// 1) Constraints and indexes
 CREATE CONSTRAINT cityIdUnique IF NOT EXISTS
   FOR (c:City) REQUIRE c.cityId IS UNIQUE;
 
 CREATE INDEX cityNameIndex IF NOT EXISTS
   FOR (c:City) ON (c.name);
 
-// 2) 创建所有 City 节点
+// 2) Create all City nodes
 CREATE 
-  // 北美
+  // Canada
   (m:City {cityId:'507f191e810c19729de860a1', name:'Montréal', latitude:45.50, longitude:-73.57}),
   (t:City {cityId:'507f191e810c19729de860a2', name:'Toronto',  latitude:43.65, longitude:-79.38}),
-  // 法国
+  // France
   (p:City {cityId:'507f191e810c19729de860b1', name:'Paris',      latitude:48.8566, longitude:2.3522}),
   (a:City {cityId:'507f191e810c19729de860b2', name:'Amiens',     latitude:49.8941, longitude:2.2958}),
   (s:City {cityId:'507f191e810c19729de860b3', name:'Strasbourg', latitude:48.5734, longitude:7.7521}),
@@ -23,7 +23,7 @@ CREATE
   (d:City {cityId:'507f191e810c19729de860b7', name:'Dijon',      latitude:47.3220, longitude:5.0415}),
   (lh:City{cityId:'507f191e810c19729de860b8', name:'Le Havre',   latitude:49.4944, longitude:0.1079});
 
-// 3) 动态计算并创建 LOCATED_AT 关系
+// 3) Dynamically calculate and create LOCATED_AT relationships
 WITH [
   ['Montréal','Toronto'],
   ['Paris','Amiens'],

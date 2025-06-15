@@ -8,7 +8,6 @@ exports = async function(changeEvent) {
   const accId    = changeEvent.documentKey._id;
   let   doc      = changeEvent.fullDocument;
 
-  // --- 如果没有 fullDocument（update 时常见），就手动去查一遍 ---
   if (!doc) {
     doc = await accCol.findOne({ _id: accId });
   }
@@ -17,14 +16,12 @@ exports = async function(changeEvent) {
     case "insert":
     case "replace":
     case "update": {
-      // 如果连 city.id 都没有，直接跳过
       if (!doc || !doc.city || !doc.city.id) {
         console.warn("Skip sync: missing doc.city.id", changeEvent);
         return;
       }
       const cityId = doc.city.id;
 
-      // 先尝试更新已存在的子文档
       await cityCol.updateOne(
         { _id: cityId, "accommodations.id": accId },
         { $set: {
@@ -35,7 +32,6 @@ exports = async function(changeEvent) {
         }
       );
 
-      // 数组中还没有则 push
       await cityCol.updateOne(
         { _id: cityId, "accommodations.id": { $ne: accId } },
         { $push: {
@@ -52,7 +48,6 @@ exports = async function(changeEvent) {
     }
 
     case "delete": {
-      // 仅凭 documentKey._id 就能 pull
       await cityCol.updateMany(
         { "accommodations.id": accId },
         { $pull: { accommodations: { id: accId } } }
@@ -61,7 +56,6 @@ exports = async function(changeEvent) {
     }
 
     default:
-      // 忽略其他
   }
 };
 
@@ -74,16 +68,13 @@ exports = async function(changeEvent) {
   const poiId   = changeEvent.documentKey._id;
   let   doc     = changeEvent.fullDocument;
 
-  // 打印看看 fullDocument 究竟有没有
   console.log(">>> changeEvent.fullDocument:", changeEvent.fullDocument);
 
-  // 如果没有 fullDocument，再读一次数据库
   if (!doc) {
     doc = await poiCol.findOne({ _id: poiId });
     console.log(">>> fetched from DB:", doc);
   }
 
-  // 如果这里还没 city 字段，就停止并打印
   if (!doc || !doc.city || !doc.city.id) {
     console.error("Skip POI→City sync, missing doc.city.id");
     return;
@@ -126,22 +117,17 @@ exports = async function(changeEvent) {
   const poiCol  = db.collection("pointOfInterest");
   const accCol  = db.collection("accommodation");
 
-  // 1 拿到被改名的 cityId
   const cityId = changeEvent.documentKey._id;
 
-  // 2 根据操作类型，决定 newName
   let newName;
   if (changeEvent.operationType === "update") {
-    // 只有当 name 真被改了才继续
     newName = changeEvent.updateDescription?.updatedFields?.name;
     if (!newName) {
       return;
     }
   } else if (changeEvent.operationType === "replace") {
-    // replace 一定会送来 fullDocument
     newName = changeEvent.fullDocument?.name;
     if (!newName) {
-      // 万一没开 Full Document，也手动拉一次
       const cityDoc = await cityCol.findOne(
         { _id: cityId },
         { projection: { name: 1 } }
@@ -150,17 +136,14 @@ exports = async function(changeEvent) {
       if (!newName) return;
     }
   } else {
-    // insert/delete 等都不关心
     return;
   }
 
-  // 3 同步到 POI
   await poiCol.updateMany(
     { "city.id": cityId },
     { $set: { "city.name": newName } }
   );
 
-  // 4 同步到 Accommodation
   await accCol.updateMany(
     { "city.id": cityId },
     { $set: { "city.name": newName } }
@@ -177,7 +160,6 @@ exports = async function(changeEvent) {
   const poiId  = changeEvent.documentKey._id;
   let doc      = changeEvent.fullDocument;
 
-  // 如果没有 fullDocument（update 时常见），主动补全
   if (!doc) {
     doc = await poiCol.findOne({ _id: poiId }, { projection: { name: 1 } });
   }
@@ -185,7 +167,6 @@ exports = async function(changeEvent) {
   const op = changeEvent.operationType;
   switch (op) {
     case "update": {
-      // 仅在 name 字段被更新时，才同步
       const updated = changeEvent.updateDescription?.updatedFields;
       if (!updated || updated.name === undefined) return;
       const newName = updated.name;
@@ -197,7 +178,6 @@ exports = async function(changeEvent) {
     }
     case "insert":
     case "replace": {
-      // insert/replace 直接读 fullDocument.name
       if (!doc?.name) return;
       const newName = doc.name;
       await actCol.updateMany(
@@ -207,29 +187,23 @@ exports = async function(changeEvent) {
       break;
     }
     case "delete": {
-      // POI 删除：同时删除相关活动
       await actCol.deleteMany({ "pointOfInterest.id": poiId });
       break;
     }
     default:
-      // 其它类型不处理
       return;
   }
 };
 
 //II.5 cascadeDeleteCityChildren
 exports = async function(changeEvent) {
-  // 只处理 delete 事件
   if (changeEvent.operationType !== "delete") return;
 
-  // 被删除的 city 的 _id
   const cityId = changeEvent.documentKey._id;
 
-  // 连接到 Atlas 数据库
   const svc = context.services.get("mongodb-atlas");
   const db  = svc.db("tripManagementDB");
 
-  // 并行删除所有属于该 city 的 POI 和住宿
   await Promise.all([
     db.collection("pointOfInterest").deleteMany({ "city.id": cityId }),
     db.collection("accommodation").   deleteMany({ "city.id": cityId })
@@ -238,18 +212,14 @@ exports = async function(changeEvent) {
 
 //II.6 cascadeDeletePOIChildren
 exports = async function(changeEvent) {
-  // 只处理 delete 事件
   if (changeEvent.operationType !== "delete") return;
 
-  // 被删 POI 的 _id
   const poiId = changeEvent.documentKey._id;
 
-  // 连接到Atlas 数据库
   const svc   = context.services.get("mongodb-atlas");
   const db    = svc.db("tripManagementDB");
   const actCol = db.collection("activity");
 
-  // 在 activity 中找到所有引用此 poiId 的文档并删除
   const result = await actCol.deleteMany({ "pointOfInterest.id": poiId });
 
   console.log(`CascadeDeleteActivitiesOnPOIDelete: removed ${result.deletedCount} activities for POI ${poiId}`);

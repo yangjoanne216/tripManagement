@@ -1,5 +1,4 @@
 //1.Quels sont les villes situées à moins de 300km d’une ville donnée ?example : Paris
-// a) 距离某城 300km 内的所有城市 
 MATCH (c1:City {name:"Paris"}), (c2:City)
 WHERE c1<>c2
   AND point.distance(
@@ -12,15 +11,13 @@ RETURN c2.name   AS nearbyCity,
          point({latitude:c2.latitude, longitude:c2.longitude})
        )/1000       AS distKm;
 
-//2.Quelle est le temps de trajet et la distance entre 2 villes données ?
-// b) 两城之间的路段距离和时间 (example : Paris and Lyon)
+//2.Quelle est le temps de trajet et la distance entre 2 villes données ? (example : Paris et Lyon)
 MATCH (c1:City {name:"Paris"})-[r:LOCATED_AT]-(c2:City {name:"Lyon"})
 RETURN r.distanceKm   AS distanceKm,
        r.travelTimeMin AS travelTimeMin;
 
 //3.Etant données une ville de départ et une ville d’arrivée, quels sont les différentes villes possibles à
-visiter entre les 2 ?
-// c) 起点与终点之间可能经过的城市（最短路径）(exemple: Paris and Grenoble)
+visiter entre les 2 ? (exemple: Paris et Grenoble)
 MATCH path = shortestPath(
        (start:City {name:"Paris"})-[:LOCATED_AT*]-(end:City {name:"Grenoble"})
      )
