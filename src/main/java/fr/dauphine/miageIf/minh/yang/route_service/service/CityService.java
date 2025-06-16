@@ -3,6 +3,7 @@ package fr.dauphine.miageIf.minh.yang.route_service.service;
 import fr.dauphine.miageIf.minh.yang.route_service.dao.CityDao;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.NeighborDto;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.UpdateCityRequest;
+import fr.dauphine.miageIf.minh.yang.route_service.exceptions.CityAlreadyExistsException;
 import fr.dauphine.miageIf.minh.yang.route_service.exceptions.CityNotFoundException;
 import fr.dauphine.miageIf.minh.yang.route_service.model.City;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.CreationCityRequest;
@@ -30,6 +31,14 @@ public class CityService {
      */
     @Transactional
     public City createCity(CreationCityRequest request) {
+        if (cityDao.existsByCityId(request.getCityId())) {
+            throw new CityAlreadyExistsException(
+                    "City with id '" + request.getCityId() + "' already exists");
+        }
+        if (cityDao.existsByName(request.getName())) {
+            throw new CityAlreadyExistsException(
+                    "City with name '" + request.getName() + "' already exists");
+        }
         City city = new City(request.getCityId(), request.getName());
         return cityDao.save(city);
     }
