@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class CreationEdgeRequest {
     private String sourceCityId;
     private String destinationCityId;
-    private int distanceKm;
+    private double distanceKm;
     private int travelTimeMin;
 }

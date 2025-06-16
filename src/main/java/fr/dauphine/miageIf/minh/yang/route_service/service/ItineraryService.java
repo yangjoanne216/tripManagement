@@ -27,10 +27,10 @@ public class ItineraryService {
      */
     @Transactional(readOnly = true)
     public ItineraryResponse getShortestPath(String sourceCityId, String destinationCityId) {
-        if (!cityDao.existsById(sourceCityId)) {
+        if (!cityDao.existsByCityId(sourceCityId)) {
             throw new CityNotFoundException(sourceCityId);
         }
-        if (!cityDao.existsById(destinationCityId)) {
+        if (!cityDao.existsByCityId(destinationCityId)) {
             throw new CityNotFoundException(destinationCityId);
         }
 
@@ -65,10 +65,10 @@ public class ItineraryService {
             String destinationCityId,
             int maxStops
     ) {
-        if (!cityDao.existsById(sourceCityId)) {
+        if (!cityDao.existsByCityId(sourceCityId)) {
             throw new CityNotFoundException(sourceCityId);
         }
-        if (!cityDao.existsById(destinationCityId)) {
+        if (!cityDao.existsByCityId(destinationCityId)) {
             throw new CityNotFoundException(destinationCityId);
         }
 

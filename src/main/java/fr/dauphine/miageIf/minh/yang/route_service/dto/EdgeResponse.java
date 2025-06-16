@@ -12,6 +12,6 @@ public class EdgeResponse {
     private Long routeId;
     private String sourceCityId;
     private String destinationCityId;
-    private int distanceKm;
+    private double distanceKm;
     private int travelTimeMin;
 }

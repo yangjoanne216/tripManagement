@@ -13,7 +13,7 @@ public class Edge {
     @RelationshipId
     @GeneratedValue
     private Long id;
-    private int distanceKm;
+    private double distanceKm;
     private int travelTimeMin;
 
     @TargetNode

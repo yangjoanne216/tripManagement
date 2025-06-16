@@ -12,6 +12,6 @@ import lombok.Data;
 public class NeighborDto {
     private String cityId;
     private String name;
-    private int distanceKm;
+    private double distanceKm;
     private int travelTimeMin;
 }

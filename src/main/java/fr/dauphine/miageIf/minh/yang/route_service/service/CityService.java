@@ -48,7 +48,7 @@ public class CityService {
      */
     @Transactional(readOnly = true)
     public City getCityById(String cityId) {
-        return cityDao.findById(cityId)
+        return cityDao.findByCityId(cityId)
                 .orElseThrow(() -> new CityNotFoundException(cityId));
     }
 
@@ -57,7 +57,7 @@ public class CityService {
      */
     @Transactional
     public City updateCityName(String cityId, String newName) {
-        City city = cityDao.findById(cityId)
+        City city = cityDao.findByCityId(cityId)
                 .orElseThrow(() -> new CityNotFoundException(cityId));
         city.setName(newName);
         return cityDao.save(city);
@@ -68,10 +68,10 @@ public class CityService {
      */
     @Transactional
     public void deleteCity(String cityId) {
-        if (!cityDao.existsById(cityId)) {
+        if (!cityDao.existsByCityId(cityId)) {
             throw new CityNotFoundException(cityId);
         }
-        cityDao.deleteById(cityId);
+        cityDao.deleteByCityId(cityId);
     }
 
     /**
@@ -80,7 +80,7 @@ public class CityService {
      */
     @Transactional(readOnly = true)
     public List<NeighborDto> getNeighbors(String cityId, int maxDistanceKm) {
-        if (!cityDao.existsById(cityId)) {
+        if (!cityDao.existsByCityId(cityId)) {
             throw new CityNotFoundException(cityId);
         }
         // 自定义 Cypher 查询：MATCH (c)-[r:LOCATED_AT]- (n) WHERE r.distanceKm <= maxDistanceKm RETURN n, r
@@ -96,7 +96,7 @@ public class CityService {
                 .mappedBy((typeSystem, record) -> {
                     String nid = record.get("neighborId").asString();
                     String nname = record.get("neighborName").asString();
-                    int dKm = record.get("dKm").asInt();
+                    double dKm = record.get("dKm").asDouble();
                     int tMin = record.get("tMin").asInt();
                     return new NeighborDto(nid, nname, dKm, tMin); //把每一条查询结果（Record 对象）映射到一个 NeighborDto 实例。
                 })

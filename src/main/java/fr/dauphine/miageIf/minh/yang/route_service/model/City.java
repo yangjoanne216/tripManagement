@@ -1,31 +1,32 @@
 package fr.dauphine.miageIf.minh.yang.route_service.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+
 
 @Node
 @Builder
 @Data                            //生成 getter/setter/toString
 @NoArgsConstructor               // 生成无参构造
 @AllArgsConstructor              // 生成全参构造（cityId, name, neighbours）
-@EqualsAndHashCode(exclude = {"outgoingNeighbours", "incomingNeighbours"})  //Lombok 在生成 equals()/hashCode() 时会排除 outgoing/incoming 两个字段，
+//@EqualsAndHashCode(exclude = {"outgoingNeighbours", "incomingNeighbours"})  //Lombok 在生成 equals()/hashCode() 时会排除 outgoing/incoming 两个字段，
 public class City {
     @Id
-    @Setter(AccessLevel.PRIVATE)
+    @GeneratedValue              // ← 用 internal id
+    @JsonIgnore                      // ← 不把它序列化到外面，免得和 cityId 混淆
+    private Long id;
+
+    @Property("cityId")          // ← 改成普通字段
     private String cityId;
+
     private String name;
-    @Relationship(type = "LOCATED_AT")
-    private Set<Edge> neighbours = new HashSet<>();
+    //@Relationship(type = "LOCATED_AT")
+    //private Set<Edge> neighbours = new HashSet<>();
 
     public City(String cityId, String name) {
         this.cityId = cityId;
@@ -35,16 +36,16 @@ public class City {
     /**
      * this → other
      */
-    @JsonIgnore
+  /*  @JsonIgnore
     @Relationship(type = "LOCATED_AT", direction = Relationship.Direction.OUTGOING)
-    private Set<Edge> outgoingNeighbours = new HashSet<>();
+    private Set<Edge> outgoingNeighbours = new HashSet<>();*/
 
     /**
      * other → this
      */
-    @JsonIgnore
+/*    @JsonIgnore
     @Relationship(type = "LOCATED_AT", direction = Relationship.Direction.INCOMING)
-    private Set<Edge> incomingNeighbours = new HashSet<>();
+    private Set<Edge> incomingNeighbours = new HashSet<>();*/
 
 
 
@@ -52,7 +53,7 @@ public class City {
      * 新增一个“虚拟” getter，将 incoming 和 outgoing 合并为一个集合，
      * 并标记为 @JsonProperty("neighbours")，替代原先序列化时的 neighbours。
      */
-    @Transient
+/*    @Transient
     @JsonProperty("neighbours")
     public Set<Edge> getNeighbours() {
        Set<Edge> all = new HashSet<>();
@@ -72,10 +73,10 @@ public class City {
             });
         }
         return all;
-         /* return Stream.concat(
+       return Stream.concat(
                         (outgoingNeighbours != null ? outgoingNeighbours.stream() : Stream.empty()),
                         (incomingNeighbours != null ? incomingNeighbours.stream() : Stream.empty())
                 )
-                .collect(Collectors.toSet());*/
-    }
+                .collect(Collectors.toSet());
+    }*/
 }
