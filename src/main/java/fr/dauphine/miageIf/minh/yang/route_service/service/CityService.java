@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.route_service.service;
 
 import fr.dauphine.miageIf.minh.yang.route_service.dao.CityDao;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.NeighborDto;
+import fr.dauphine.miageIf.minh.yang.route_service.dto.UpdateCityRequest;
 import fr.dauphine.miageIf.minh.yang.route_service.exceptions.CityNotFoundException;
 import fr.dauphine.miageIf.minh.yang.route_service.model.City;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.CreationCityRequest;
@@ -47,21 +48,61 @@ public class CityService {
      * 根据 cityId 查询单个 City。不存在则抛 CityNotFoundException。
      */
     @Transactional(readOnly = true)
-    public City getCityById(String cityId) {
+    public City getCityByCityId(String cityId) {
         return cityDao.findByCityId(cityId)
                 .orElseThrow(() -> new CityNotFoundException(cityId));
     }
 
     /**
-     * 更新单个 City（这里只允许更新 name 字段，如果不存在则抛 404）。
+     * 更新 name/latitude/longitude，任一字段不为 null 则更新。
+     * 更新后重新计算所有和此 city 相连的 LOCATED_AT 距离属性。
      */
+    @Transactional
+    public City updateCity(String cityId, UpdateCityRequest req) {
+        City city = cityDao.findByCityId(cityId)
+                .orElseThrow(() -> new CityNotFoundException(cityId));
+
+        if (req.getName() != null) {
+            city.setName(req.getName());
+        }
+        if (req.getLatitude() != null) {
+            city.setLatitude(req.getLatitude());
+        }
+        if (req.getLongitude() != null) {
+            city.setLongitude(req.getLongitude());
+        }
+        city = cityDao.save(city);
+
+        // 重新计算所有相关边的属性
+        String cypher = ""
+                + "MATCH (c:City {cityId:$cid})-[r:LOCATED_AT]-(n:City)\n"
+                + "WITH c, n,\n"
+                + "     point({latitude:c.latitude, longitude:c.longitude}) AS p1,\n"
+                + "     point({latitude:n.latitude, longitude:n.longitude}) AS p2,\n"
+                + "     r\n"
+                + "WITH r,\n"
+                + "     round(point.distance(p1,p2) / 1000.0, 1) AS dKm,\n"
+                + "     toInteger(round((point.distance(p1,p2) / 1000.0) / 80 * 60, 0)) AS tMin\n"
+                + "SET r.distanceKm = dKm,\n"
+                + "    r.travelTimeMin = tMin";
+
+        neo4jClient.query(cypher)
+                .bind(cityId).to("cid")
+                .run();
+
+        return city;
+    }
+
+    /**
+     * 更新单个 City（这里只允许更新 name 字段，如果不存在则抛 404）。
+     
     @Transactional
     public City updateCityName(String cityId, String newName) {
         City city = cityDao.findByCityId(cityId)
                 .orElseThrow(() -> new CityNotFoundException(cityId));
         city.setName(newName);
         return cityDao.save(city);
-    }
+    }*/
 
     /**
      * 删除单个 City 节点 (同时会删除所有与之相关的 LOCATED_AT 关系)。
@@ -71,6 +112,7 @@ public class CityService {
         if (!cityDao.existsByCityId(cityId)) {
             throw new CityNotFoundException(cityId);
         }
+        // DETACH DELETE 会自动删除所有关系
         cityDao.deleteByCityId(cityId);
     }
 

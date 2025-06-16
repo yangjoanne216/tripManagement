@@ -1,5 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.route_service.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +11,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class CreationCityRequest {
+    @NotBlank
     private String cityId;
+    @NotBlank
     private String name;
+    @NotNull
+    private Double latitude;
+    @NotNull
+    private Double longitude;
 }

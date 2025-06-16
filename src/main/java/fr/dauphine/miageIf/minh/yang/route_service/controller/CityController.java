@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.route_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.route_service.dto.CreationCityRequest;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.NeighborDto;
+import fr.dauphine.miageIf.minh.yang.route_service.dto.UpdateCityRequest;
 import fr.dauphine.miageIf.minh.yang.route_service.model.City;
 import fr.dauphine.miageIf.minh.yang.route_service.service.CityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,7 +54,7 @@ public class CityController {
     )
     @GetMapping("/{cityId}")
     public ResponseEntity<City> getCityById(@PathVariable String cityId) {
-        City city = cityService.getCityById(cityId);
+        City city = cityService.getCityByCityId(cityId);
         return ResponseEntity.ok(city);
     }
 
@@ -110,18 +111,17 @@ public class CityController {
      * 200 OK + 更新后 City JSON；若 cityId 不存在，抛 404
      */
     @Operation(
-            summary = "Update city name",
-            description = "Update the 'name' field of an existing City node identified by cityId. " +
-                    "Request body must contain the new 'name'. Returns the updated City object. " +
+            summary = "Update city",
+            description = "Update the 'name'/latitude/longtitude field of an existing City node identified by cityId. " +
+                    "Request body must contain the new 'name',latitude,longitude. Returns the updated City object. " +
                     "If the cityId does not exist, returns HTTP 404 Not Found."
     )
     @PutMapping("/{cityId}")
     public ResponseEntity<City> updateCity(
             @PathVariable String cityId,
-            @RequestBody String cityName
+            @RequestBody UpdateCityRequest req
     ) {
-        // 这里只使用 requestBody.getName() 进行更新
-        City updated = cityService.updateCityName(cityId, cityName);
+        City updated = cityService.updateCity(cityId, req);
         return ResponseEntity.ok(updated);
     }
 

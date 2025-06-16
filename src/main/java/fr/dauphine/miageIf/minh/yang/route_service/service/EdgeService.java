@@ -134,35 +134,38 @@ public class EdgeService {
     /**
      * 创建一条新的 LOCATED_AT 关系，返回 EdgeResponse。
      */
+    /**
+     * 只传 sourceCityName、destinationCityName，Neo4j 端计算 distanceKm 和 travelTimeMin
+     */
     @Transactional
-    public EdgeResponse createEdge(CreationEdgeRequest request) {
-        String srcId = request.getSourceCityId();
-        String dstId = request.getDestinationCityId();
-        double dKm = request.getDistanceKm();
-        int tMin = request.getTravelTimeMin();
+    public EdgeResponse createEdge(CreationEdgeRequest req) {
+        // 检查城市存在
+        cityDao.findByCityId(req.getSourceCityId())
+                .orElseThrow(() -> new CityNotFoundException(req.getSourceCityId()));
+        cityDao.findByCityId(req.getDestinationCityId())
+                .orElseThrow(() -> new CityNotFoundException(req.getDestinationCityId()));
 
-        // 检查两个 City 是否存在
-        cityDao.findByCityId(srcId)
-                .orElseThrow(() -> new CityNotFoundException(srcId));
-        cityDao.findByCityId(dstId)
-                .orElseThrow(() -> new CityNotFoundException(dstId));
-
-        // Cypher: CREATE 关系并返回 r 的内部 ID
         String cypher = ""
-                + "MATCH (s:City {cityId: $srcId}), (d:City {cityId: $dstId}) "
-                + "CREATE (s)-[r:LOCATED_AT {distanceKm: $dKm, travelTimeMin: $tMin}]->(d) "
-                + "RETURN id(r) AS relId";
+                + "MATCH (s:City {cityId:$src}), (d:City {cityId:$dst})\n"
+                + "WITH s, d,\n"
+                + "     point({latitude: s.latitude,  longitude: s.longitude}) AS p1,\n"
+                + "     point({latitude: d.latitude,  longitude: d.longitude}) AS p2\n"
+                + "CREATE (s)-[r:LOCATED_AT {\n"
+                + "    distanceKm:    round( point.distance(p1,p2) / 1000.0, 1),\n"
+                + "    travelTimeMin: toInteger(round((point.distance(p1,p2) / 1000.0) / 80 * 60, 0))\n"
+                + "}]->(d)\n"
+                + "RETURN id(r) AS routeId, r.distanceKm AS dKm, r.travelTimeMin AS tMin";
 
-        Map<String,Object> rec = neo4jClient.query(cypher)
-                .bind(srcId).to("srcId")
-                .bind(dstId).to("dstId")
-                .bind(dKm).to("dKm")
-                .bind(tMin).to("tMin")
+        var rec = neo4jClient.query(cypher)
+                .bind(req.getSourceCityId()).to("src")
+                .bind(req.getDestinationCityId()).to("dst")
                 .fetch().first()
-                .orElseThrow(() -> new RuntimeException("Failed to create Edge via Cypher."));
+                .orElseThrow(() -> new RuntimeException("failed"));
 
-        long relId = ((Number)rec.get("relId")).longValue();
-        return new EdgeResponse(relId, srcId, dstId, dKm, tMin);
+        long id     = ((Number)rec.get("routeId")).longValue();
+        double dKm  = ((Number) rec.get("dKm")).doubleValue();
+        int tMin    = ((Number) rec.get("tMin")).intValue();
+        return new EdgeResponse(id, req.getSourceCityId(), req.getDestinationCityId(), dKm, tMin);
     }
 
     /**

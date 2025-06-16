@@ -95,7 +95,7 @@ public class EdgeController {
      * 更新已有 LOCATED_AT 关系的 distanceKm / travelTimeMin 中的一个或两个。
      * 请求 JSON，比如 { "distanceKm": 600 } 或 { "travelTimeMin": 400 }，也可以两者同时更新。
      * 200 OK + 更新后 EdgeResponse；若 routeId 不存在，则 404
-     */
+
     @Operation(
             summary = "Update edge",
             description = "Update the properties (distanceKm and/or travelTimeMin) of an existing LOCATED_AT relationship " +
@@ -111,7 +111,7 @@ public class EdgeController {
     ) {
         EdgeResponse updated = edgeService.updateEdgeByCities(sourceCityId, destinationCityId, request);
         return ResponseEntity.ok(updated);
-    }
+    } */
 
     @Operation(
             summary = "Delete edge",
