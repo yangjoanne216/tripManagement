@@ -10,13 +10,17 @@ import java.util.List;
 public class AccommodationDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
+
     @NotBlank
     private String name;
+
     private String address;
     private List<String> photos;
-    private CityRefDto city;
+
+    @NotBlank
+    private String cityId;
+
     private double price;
     private boolean available;
-    @Data
-    public static class CityRefDto { String id,name; }
 }
+

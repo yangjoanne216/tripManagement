@@ -1,86 +1,88 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller.handler;
 
+import com.mongodb.MongoWriteException;
+import fr.dauphine.miageIf.minh.yang.info_service.dto.ApiError;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.BadRequestException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;
-import org.springframework.dao.DataIntegrityViolationException;
+import jakarta.validation.ConstraintViolationException;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
-/**
- * 全局异常处理器，拦截并处理各类常见异常，返回符合 REST 语义的 HTTP 状态码和 JSON 错误响应体。
- */
 @Hidden
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * 1. ResourceNotFoundException → HTTP 404
-     */
+    //--------------------------------------------
+    // 404: 引用不存在或资源未找到
+    //--------------------------------------------
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Not Found");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
+        ApiError err = new ApiError(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
-
-    /**
-     * 2. BadRequestException → HTTP 400
-     */
+    //--------------------------------------------
+    // 400: 引用不存在或资源未找到
+    //--------------------------------------------
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ApiError(ex.getMessage()));
     }
 
-    /**
-     * 3. MethodArgumentNotValidException → HTTP 400 (Bean Validation 失败)
-     */
+    //--------------------------------------------
+    // 400: Spring Bean + Path/Param 校验失败
+    //--------------------------------------------
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fe.getField(), fe.getDefaultMessage());
         }
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Validation Failed");
-        body.put("message", "One or more fields have validation errors");
-        body.put("fields", fieldErrors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        ApiError err = new ApiError("Validation failed", fieldErrors);
+        return ResponseEntity.badRequest().body(err);
     }
 
-    /**
-     * 4. HttpMessageNotReadableException → HTTP 400 (Malformed JSON)
-     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
+        ApiError err = new ApiError("Validation failed", ex.getMessage());
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    //--------------------------------------------
+    // 400: Malformed JSON
+    //--------------------------------------------
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleMalformedJson(HttpMessageNotReadableException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Malformed JSON");
-        body.put("message", ex.getMostSpecificCause().getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
+        ApiError err = new ApiError("Malformed JSON: " + ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.badRequest().body(err);
+    }
+    //--------------------------------------------
+    // 409: 重复键或写入冲突
+    //--------------------------------------------
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<ApiError> handleConflict(Exception ex) {
+        ApiError err = new ApiError("Conflict: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+
+    //--------------------------------------------
+    // 500: 其他未捕获异常
+    //--------------------------------------------
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleAll(Exception ex) {
+        ApiError err = new ApiError("Internal server error");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
 }
-

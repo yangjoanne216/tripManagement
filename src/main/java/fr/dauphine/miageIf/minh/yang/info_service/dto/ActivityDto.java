@@ -10,12 +10,21 @@ import java.util.List;
 public class ActivityDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
+
     @NotBlank
     private String name;
-    private PoiRefDto pointOfInterest;
+
     private List<String> photos;
     private List<String> seasons;
+
     private PriceDto price;
-    @Data public static class PoiRefDto { String id,name; }
-    @Data public static class PriceDto { double adult,child; }
+
+    @NotBlank
+    private String pointOfInterestId;
+
+    @Data
+    public static class PriceDto {
+        private double adult;
+        private double child;
+    }
 }

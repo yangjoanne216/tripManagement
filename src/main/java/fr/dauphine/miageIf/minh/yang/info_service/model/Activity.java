@@ -6,16 +6,23 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Document("activity")
+@Document(collection = "activity")
 @Data
 public class Activity {
     @Id
     private String id;
+
     private String name;
-    private PoiRef pointOfInterest;
     private List<String> photos;
     private List<String> seasons;
     private Price price;
-    @Data public static class PoiRef { String id, name; }
-    @Data public static class Price { double adult, child; }
+
+    // Reference to PointOfInterest by ID
+    private org.bson.types.ObjectId pointOfInterestId;
+
+    @Data
+    public static class Price {
+        private double adult;
+        private double child;
+    }
 }
