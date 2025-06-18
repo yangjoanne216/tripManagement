@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.info_service.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -12,6 +13,7 @@ public class Accommodation {
     @Id
     private String id;
 
+    @Indexed(unique = true, name = "acc_name_idx")
     private String name;
     private String address;
     private List<String> photos;

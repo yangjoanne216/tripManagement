@@ -1,11 +1,13 @@
 package fr.dauphine.miageIf.minh.yang.info_service.service;
 
+import com.mongodb.DuplicateKeyException;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.AccommodationRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.ActivityRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.CityRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.PointOfInterestRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationDto;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.AccommodationUpdateOrCreateDto;
+import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ConflictException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.AccommodationMapper;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.ActivityMapper;
@@ -31,7 +33,11 @@ public class AccommodationService {
     private final AccommodationMapper mapper;
 
     public AccommodationDto create(AccommodationUpdateOrCreateDto dto) {
-        // 检查 cityId 引用是否存在
+        // 1) 名称唯一检查
+        if (accRepo.existsByName(dto.getName())) {
+            throw new ConflictException("Accommodation name must be unique: " + dto.getName());
+        }
+        // 2) 外键 city 校验
         if (!cityRepo.existsById(dto.getCityId())) {
             throw new ResourceNotFoundException("City not found: " + dto.getCityId());
         }
@@ -41,15 +47,20 @@ public class AccommodationService {
     }
 
     public AccommodationDto update(String id, AccommodationUpdateOrCreateDto dto) {
-        // 检查 cityId 引用是否存在
+        Accommodation existing = accRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Accommodation not found: " + id));
+        // 1) 名称唯一检查
+        if (!existing.getName().equals(dto.getName()) && accRepo.existsByName(dto.getName())) {
+            throw new ConflictException("Accommodation name must be unique: " + dto.getName());
+        }
+        // 2) 外键 city 校验
         if (!cityRepo.existsById(dto.getCityId())) {
             throw new ResourceNotFoundException("City not found: " + dto.getCityId());
         }
-        Accommodation existing = accRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Accommodation not found: " + id));
         mapper.updateEntityFromDto(dto, existing);
         Accommodation saved = accRepo.save(existing);
         return mapper.toDto(saved);
+
     }
 
     public void delete(String id) {

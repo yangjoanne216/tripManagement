@@ -1,10 +1,12 @@
 package fr.dauphine.miageIf.minh.yang.info_service.service;
 
+import com.mongodb.DuplicateKeyException;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.ActivityRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.PointOfInterestRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityDto;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityUpdateOrCreateDto;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.PointOfInterestDto;
+import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ConflictException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.ActivityMapper;
 import fr.dauphine.miageIf.minh.yang.info_service.model.Activity;
@@ -31,21 +33,32 @@ public class ActivityService {
         if (!poiRepo.existsById(dto.getPointOfInterestId())) {
             throw new ResourceNotFoundException("PointOfInterest not found: " + dto.getPointOfInterestId());
         }
-        Activity entity = mapper.toEntity(dto);
-        Activity saved = actRepo.save(entity);
-        return mapper.toDto(saved);
+        if (actRepo.existsByName(dto.getName())) {
+            throw new ConflictException("Activity name must be unique: " + dto.getName());
+        }
+        try{
+            Activity saved = actRepo.save(mapper.toEntity(dto));
+            return mapper.toDto(saved);
+        } catch (DuplicateKeyException ex){
+            throw new ConflictException("Activity name must be unique: " + dto.getName());
+        }
     }
 
     public ActivityDto update(String id, ActivityUpdateOrCreateDto dto) {
-        // 检查 pointOfInterestId 引用是否存在
+        Activity existing = actRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + id));
+        // 1) 名称唯一检查（改名才检查）
+        if (!existing.getName().equals(dto.getName()) && actRepo.existsByName(dto.getName())) {
+            throw new ConflictException("Activity name must be unique: " + dto.getName());
+        }
+        // 2) 外键 poi 校验
         if (!poiRepo.existsById(dto.getPointOfInterestId())) {
             throw new ResourceNotFoundException("PointOfInterest not found: " + dto.getPointOfInterestId());
         }
-        Activity existing = actRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + id));
         mapper.updateEntityFromDto(dto, existing);
         Activity saved = actRepo.save(existing);
         return mapper.toDto(saved);
+
     }
 
     public void delete(String id) {

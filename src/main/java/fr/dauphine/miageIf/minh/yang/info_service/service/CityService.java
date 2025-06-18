@@ -27,25 +27,23 @@ public class CityService {
     private final PointOfInterestRepository pointOfInterestRepository;
 
     public CityDto create(CityUpdateOrCreateDto dto) {
-        try {
-            City entity = cityMapper.toEntity(dto);
-            City saved = cityRepo.save(entity);
-            return cityMapper.toDto(saved);
-        } catch (DuplicateKeyException ex) {
+        if (cityRepo.existsByName(dto.getName())) {
             throw new ConflictException("City name must be unique: " + dto.getName());
         }
+        City entity = cityMapper.toEntity(dto);
+        City saved = cityRepo.save(entity);
+        return cityMapper.toDto(saved);
     }
 
     public CityDto update(String id, CityUpdateOrCreateDto dto) {
         City existing = cityRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found: " + id));
-        try {
-            cityMapper.updateEntityFromDto(dto, existing);
-            City saved = cityRepo.save(existing);
-            return cityMapper.toDto(saved);
-        } catch (DuplicateKeyException ex) {
+        if (!existing.getName().equals(dto.getName()) && cityRepo.existsByName(dto.getName())) {
             throw new ConflictException("City name must be unique: " + dto.getName());
         }
+        cityMapper.updateEntityFromDto(dto, existing);
+        City saved = cityRepo.save(existing);
+        return cityMapper.toDto(saved);
     }
 
     public void delete(String id) {

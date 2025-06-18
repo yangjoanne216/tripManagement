@@ -31,38 +31,35 @@ public class PointOfInterestService {
 
     private final CityService cityService;
 
-    public PointOfInterestDto create(PointOfInterestUpdateOrCreateDto dto) {
-        // 1) 外键校验：cityId 必须存在，否则 404
+    public PointOfInterestDto create(PointOfInterestUpdateOrCreateDto dto) {    // 1) 名称唯一检查
+        if (poiRepo.existsByName(dto.getName())) {
+            throw new ConflictException("PointOfInterest name must be unique: " + dto.getName());
+        }
+        // 2) 外键 city 校验
         if (!cityRepo.existsById(dto.getCityId())) {
             throw new ResourceNotFoundException("City not found: " + dto.getCityId());
         }
-        // 2) 唯一索引冲突（如 name + cityId 组合唯一，可自行添加索引）
-        //    这里演示捕获 DuplicateKeyException
-        try {
-            PointOfInterest entity = mapper.toEntity(dto);
-            PointOfInterest saved = poiRepo.save(entity);
-            return mapper.toDto(saved);
-        } catch (DuplicateKeyException ex) {
-            throw new ConflictException("A POI with the same unique key already exists.");
-        }
+        PointOfInterest entity = mapper.toEntity(dto);
+        PointOfInterest saved = poiRepo.save(entity);
+        return mapper.toDto(saved);
     }
 
     public PointOfInterestDto update(String id, PointOfInterestUpdateOrCreateDto dto) {
-        // 1) 外键校验
+        PointOfInterest existing = poiRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Point of interest not found: " + id));
+
+        // 1) 名称唯一检查（改名才检查）
+        if (!existing.getName().equals(dto.getName()) && poiRepo.existsByName(dto.getName())) {
+            throw new ConflictException("PointOfInterest name must be unique: " + dto.getName());
+        }
+        // 2) 外键 city 校验
         if (!cityRepo.existsById(dto.getCityId())) {
             throw new ResourceNotFoundException("City not found: " + dto.getCityId());
         }
-        // 2) 确保被更新记录存在
-        PointOfInterest existing = poiRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Point of interest not found: " + id));
-        // 3) 处理唯一索引冲突
-        try {
-            mapper.updateEntityFromDto(dto, existing);
-            PointOfInterest saved = poiRepo.save(existing);
-            return mapper.toDto(saved);
-        } catch (DuplicateKeyException ex) {
-            throw new ConflictException("Updating POI would violate unique constraint.");
-        }
+
+        mapper.updateEntityFromDto(dto, existing);
+        PointOfInterest saved = poiRepo.save(existing);
+        return mapper.toDto(saved);
     }
 
     public void delete(String id) {

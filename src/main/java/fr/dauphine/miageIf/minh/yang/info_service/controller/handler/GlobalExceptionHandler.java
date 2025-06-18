@@ -3,6 +3,7 @@ package fr.dauphine.miageIf.minh.yang.info_service.controller.handler;
 import com.mongodb.MongoWriteException;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ApiError;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.BadRequestException;
+import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ConflictException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolationException;
@@ -29,7 +30,11 @@ public class GlobalExceptionHandler {
     //--------------------------------------------
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
-        ApiError err = new ApiError(ex.getMessage());
+        ApiError err = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
     //--------------------------------------------
@@ -37,35 +42,22 @@ public class GlobalExceptionHandler {
     //--------------------------------------------
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
         return ResponseEntity.badRequest()
-                .body(new ApiError(ex.getMessage()));
+                .body(err);
     }
 
-    //--------------------------------------------
-    // 400: Spring Bean + Path/Param 校验失败
-    //--------------------------------------------
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
-        Map<String, String> fieldErrors = new HashMap<>();
-        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.put(fe.getField(), fe.getDefaultMessage());
-        }
-        ApiError err = new ApiError("Validation failed", fieldErrors);
-        return ResponseEntity.badRequest().body(err);
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
-        ApiError err = new ApiError("Validation failed", ex.getMessage());
-        return ResponseEntity.badRequest().body(err);
-    }
 
     //--------------------------------------------
     // 400: Malformed JSON
     //--------------------------------------------
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
-        ApiError err = new ApiError("Malformed JSON: " + ex.getMostSpecificCause().getMessage());
+        ApiError err = new ApiError(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage());
         return ResponseEntity.badRequest().body(err);
     }
     //--------------------------------------------
@@ -73,8 +65,15 @@ public class GlobalExceptionHandler {
     //--------------------------------------------
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<ApiError> handleConflict(Exception ex) {
-        ApiError err = new ApiError("Conflict: " + ex.getMessage());
+        ApiError err = new ApiError(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+    /** 409 因为资源冲突（唯一索引） */
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> handleConflict(ConflictException ex) {
+        ApiError err = new ApiError(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(err);
     }
 
     //--------------------------------------------
