@@ -31,7 +31,7 @@ public class TripRequestDto {
 
     /**
      * 行程结束日期，不能为空，且必须 >= startDate。
-     * 我们稍后在 Service 层进行“endDate >= startDate”的校验。
+     * 在 Service 层进行“endDate >= startDate”的校验。
      */
     @NotNull(message = "endDate must not be null")
     private LocalDate endDate;
@@ -41,19 +41,15 @@ public class TripRequestDto {
      * 如果前端传来不为 null，则其 size = (endDate - startDate + 1)。
      * 同时，这个 List 内部的每个 DayDto 都会被递归校验（@Valid）。
      */
-    @Size(min = 0, message = "days list size must be ≥ 0")
-    @Valid
-    private List<DayDto> days;
+    //@Size(min = 0, message = "days list size must be ≥ 0")
+    //@Valid
+    //private List<DayDto> days;
+    private List<TripDayInput> days;
 
-    /**
-     * 出发城市 ID，必须是 Route Service 中已存在的 cityId
-     */
-    @NotBlank(message = "startCity must not be blank")
-    private String startCity;
-
-    /**
-     * 目的城市 ID，必须是 Route Service 中已存在的 cityId
-     */
-    @NotBlank(message = "endCity must not be blank")
-    private String endCity;
+    @Data
+    public static class TripDayInput {
+        private String cityName;
+        private String accommodationName;
+        private List<String> activityNames;
+    }
 }

@@ -23,6 +23,11 @@ public class TripActivity {
     @Column(name = "activity_id", nullable = false)
     private String activityId;
 
+    public TripActivity(TripActivityKey tripActivityKey, String id) {
+        this.id = tripActivityKey;
+        this.activityId = id;
+    }
+
     public TripActivityKey getId() {
         return id;
     }

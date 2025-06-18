@@ -15,12 +15,17 @@ import java.util.Set;
 @AllArgsConstructor
 public class TripPointsOfInterestDto {
     /**
-     * 去重后的所有 activityId
+     * 去重后的所有活动名称
      */
-    private Set<String> activityIds;
+    private Set<String> activityNames;
 
     /**
-     * 去重后的所有 accommodationId
+     * 去重后的所有住宿名称
      */
-    private Set<String> accommodationIds;
+    private Set<String> accommodationNames;
+
+    /**
+     * 去重后的所有兴趣点（POI）名称
+     */
+    private Set<String> pointOfInterestNames;
 }

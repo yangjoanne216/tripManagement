@@ -23,4 +23,8 @@ public class TripAccommodation {
     @Column(name = "accommodation_id", nullable = false)
     private String accommodationId;
 
+    public TripAccommodation(TripAccommodationKey tripAccommodationKey, String id) {
+        this.setId(tripAccommodationKey);
+        this.setAccommodationId(id);
+    }
 }

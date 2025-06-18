@@ -1,4 +1,4 @@
-package fr.dauphine.miageIf.minh.yang.trip_service.controller.handle;
+package fr.dauphine.miageIf.minh.yang.trip_service.controller.handler;
 
 import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;

@@ -1,6 +1,10 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,11 +33,6 @@ public class Trip {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "start_city", nullable = false)
-    private String startCity;
-
-    @Column(name = "end_city", nullable = false)
-    private String endCity;
 
     @OneToMany(mappedBy = "trip",
             cascade = CascadeType.ALL,
@@ -46,5 +45,8 @@ public class Trip {
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     private List<TripAccommodation> accommodations = new ArrayList<>();
+
+    public Trip(Object o, @NotBlank(message = "name must not be blank") @Size(max = 200, message = "name length must not exceed 200 characters") String name, @NotNull(message = "startDate must not be null") @FutureOrPresent(message = "startDate must be today or a future date") LocalDate startDate, @NotNull(message = "endDate must not be null") LocalDate endDate) {
+    }
 }
 

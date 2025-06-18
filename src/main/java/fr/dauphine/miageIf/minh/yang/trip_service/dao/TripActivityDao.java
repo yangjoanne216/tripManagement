@@ -14,4 +14,6 @@ import java.util.List;
 @Repository
 public interface TripActivityDao extends JpaRepository<TripActivity, TripActivityKey> {
     List<TripActivity> findByTrip_Id(Long tripId);
+    /*查询某天的活动*/
+    List<TripActivity> findByTrip_IdAndId_Day(Long tripId, Integer day);
 }

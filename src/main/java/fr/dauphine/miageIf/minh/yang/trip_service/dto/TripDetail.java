@@ -2,6 +2,8 @@ package fr.dauphine.miageIf.minh.yang.trip_service.dto;
 
 import fr.dauphine.miageIf.minh.yang.trip_service.model.Trip;
 import fr.dauphine.miageIf.minh.yang.trip_service.model.TripAccommodation;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,48 +20,31 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TripDetail {
-    public Long id;
-    public String name;
-    public LocalDate startDate;
-    public LocalDate endDate;
-    //public Map<Integer, List<Activity>> dailyActivities;
-    //public Map<Integer, String> dailyAccommodations;
-    /**
-     * 行程中每一天的安排列表。列表中的第一个元素 day = 1 表示行程第一天。
-     * 如果某天没有任何活动或未安排住宿，DayDto 对应字段可以为空或空列表。
-     */
-    private List<DayDto> days;
+    private Long id;
+    private String name;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private List<TripDayDto> days;
 
-    /*public static class Activity {
-        public Integer sequence;
-        public String activityId;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TripDayDto {
+        private int day;                         // 第几天，从 1 开始
+        private String cityName;                // 当天所在城市名称
+        private String accommodationName;       // 当天住宿名称
+        private List<String> activityNames;     // 当天所有活动名称，按顺序
+        //private ToNext toNext;                  // 当天到下一天城市的距离/时间（最后一天为 null）
     }
 
-    public static TripDetail fromEntity(Trip t) {
-        TripDetail dto = new TripDetail();
-        dto.id = t.getId();
-        dto.name = t.getName();
-        dto.startDate = t.getStartDate();
-        dto.endDate = t.getEndDate();
-
-        dto.dailyActivities = t.getActivities().stream()
-                .collect(Collectors.groupingBy(
-                        a -> a.getId().getDay(),
-                        Collectors.mapping(a -> {
-                            Activity act = new Activity();
-                            act.sequence = a.getId().getSequence();
-                            act.activityId = a.getActivityId();
-                            return act;
-                        }, Collectors.toList())
-                ));
-
-        dto.dailyAccommodations = t.getAccommodations().stream()
-                .collect(Collectors.toMap(
-                        a -> a.getId().getDay(),
-                        TripAccommodation::getAccommodationId
-                ));
-
-        return dto;
+    /*@Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ToNext {
+        private double distanceKm;              // 相邻两城公里数
+        private int travelTimeMin;              // 预计分钟数
     }*/
+
+
 }
 
