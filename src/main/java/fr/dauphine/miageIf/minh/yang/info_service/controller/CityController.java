@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.*;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.PointOfInterestMapper;
+import fr.dauphine.miageIf.minh.yang.info_service.model.City;
 import fr.dauphine.miageIf.minh.yang.info_service.service.AccommodationService;
 import fr.dauphine.miageIf.minh.yang.info_service.service.ActivityService;
 import fr.dauphine.miageIf.minh.yang.info_service.service.CityService;
@@ -124,6 +125,20 @@ public class CityController {
     @GetMapping("/name/{name}/activities")
     public List<ActivityDto> getActivitiesByCityName(@PathVariable String name) {
         return activityService.findByCityName(name);
+    }
+
+    @Operation(
+            summary = "Get city by name",
+            description = "Retrieves a single city by its exact name. Returns 404 if not found."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "CityDto returned"),
+            @ApiResponse(responseCode = "404", description = "City not found")
+    })
+    @GetMapping("/name/{name}")
+    public ResponseEntity<CityDto> getByName(@PathVariable String name) {
+        CityDto dto = service.findByName(name);
+        return ResponseEntity.ok(dto);
     }
 
 }

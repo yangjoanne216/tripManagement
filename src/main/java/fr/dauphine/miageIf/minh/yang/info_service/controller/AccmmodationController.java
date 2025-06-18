@@ -87,4 +87,21 @@ public class AccmmodationController {private final AccommodationService service;
     public ResponseEntity<List<AccommodationDto>> listByCity(@PathVariable String cityId) {
         return ResponseEntity.ok(service.findByCity(cityId));
     }
+
+    @Operation(
+            summary = "Get accommodation by name",
+            description = "Retrieves a single accommodation DTO by exact name match."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "AccommodationDto returned"),
+            @ApiResponse(responseCode = "404", description = "Accommodation not found")
+    })
+    @GetMapping("/name/{name}")
+    public ResponseEntity<AccommodationDto> getByName(
+            @Parameter(description = "Exact name of the accommodation to retrieve", required = true)
+            @PathVariable String name
+    ) {
+        AccommodationDto dto = service.findByName(name);
+        return ResponseEntity.ok(dto);
+    }
 }

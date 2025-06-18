@@ -76,4 +76,10 @@ public class CityService {
         return cityRepo.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found: " + name));
     }
+
+    public CityDto findByName(String name) {
+        City city = cityRepo.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("City not found: " + name));
+        return cityMapper.toDto(city);
+    }
 }

@@ -92,5 +92,20 @@ public class ActivityService {
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    public List<ActivityDto> findByPoiIds(List<String> poiIdStrings) {
+        List<ObjectId> poiIds = poiIdStrings.stream()
+                .map(ObjectId::new)
+                .collect(Collectors.toList());
+        return actRepo.findByPointOfInterestIdIn(poiIds).stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public ActivityDto findByName(String name) {
+        Activity act = actRepo.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + name));
+        return mapper.toDto(act);
+    }
 }
 

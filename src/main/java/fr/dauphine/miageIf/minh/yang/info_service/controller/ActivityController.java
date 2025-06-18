@@ -81,4 +81,39 @@ public class ActivityController {
     public ResponseEntity<ActivityDto> getOne(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
+
+    @Operation(
+            summary = "Get activities by POI IDs",
+            description = "Retrieves activities associated with one or more point-of-interest IDs."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of ActivityDto returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid POI ID format")
+    })
+    @GetMapping("/poiIds")
+    public ResponseEntity<List<ActivityDto>> getByPoiIds(
+            @Parameter(description = "Comma-separated list of POI IDs (24-hex strings)", required = true)
+            @RequestParam List<String> poiIds
+    ) {
+        List<ActivityDto> dtos = service.findByPoiIds(poiIds);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @Operation(
+            summary = "Get activity by name",
+            description = "Retrieves a single activity DTO by exact name match."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "ActivityDto returned"),
+            @ApiResponse(responseCode = "404", description = "Activity not found")
+    })
+    @GetMapping("/name/{name}")
+    public ResponseEntity<ActivityDto> getByName(
+            @Parameter(description = "Exact name of the activity to retrieve", required = true)
+            @PathVariable String name
+    ) {
+        ActivityDto dto = service.findByName(name);
+        return ResponseEntity.ok(dto);
+    }
+
 }
