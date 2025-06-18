@@ -1,6 +1,8 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.dao;
 
 import fr.dauphine.miageIf.minh.yang.trip_service.model.Trip;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +30,6 @@ public interface TripDao extends JpaRepository<Trip, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate")   LocalDate endDate
     );
+
+    boolean existsByName(@NotBlank(message = "name must not be blank") @Size(max = 200, message = "name length must not exceed 200 characters") String name);
 }

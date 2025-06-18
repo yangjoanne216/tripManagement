@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.trip_service.controller.handler;
 
-import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.ResourceNotFoundException;
+import fr.dauphine.miageIf.minh.yang.trip_service.dto.ApiError;
+import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.*;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,104 +21,136 @@ import java.util.Map;
 @Hidden
 @RestControllerAdvice
 public class GlobalExceptionHandle {
-    /**
-     * 1. ResourceNotFoundException → HTTP 404
-     */
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Not Found");
-        body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    // 404: Trip 不存在
+    @ExceptionHandler(TripNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(TripNotFoundException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    /**
-     * 2. IllegalArgumentException → HTTP 400 (Bad Request)
-     *    业务逻辑校验失败时（如 endDate < startDate）可以抛此异常。
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    //404:Accommodation/Activity/POI/CITY 不存在
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    /**
-     * 3. MethodArgumentNotValidException → HTTP 400 (Bean Validation 失败)
-     *    当 Controller 中 @Valid 校验失败时，会抛出此异常。
-     *    提取字段级错误并返回给前端。
-     */
+    // 400: DTO 校验失败
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-
-        BindingResult bindingResult = ex.getBindingResult();
-        Map<String, String> fieldErrors = new HashMap<>();
-        for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Validation Failed");
-        body.put("message", "One or more fields have validation errors");
-        body.put("fields", fieldErrors);
-
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String,String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(fe ->
+                errors.put(fe.getField(), fe.getDefaultMessage())
+        );
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Validation failed"
+        );
+        err.setDetails(errors);
+        return ResponseEntity.badRequest().body(err);
     }
 
-    /**
-     * 4. HttpMessageNotReadableException → HTTP 400 (JSON 解析失败)
-     *    当请求体无法解析（非法 JSON、日期格式错误、类型不匹配等）时抛出。
-     */
+    @ExceptionHandler(IncompleteInputDataException.class)
+    public ResponseEntity<ApiError> handleValidation(IncompleteInputDataException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: JSON 反序列化或类型错误
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex) {
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Malformed JSON request");
-        body.put("message", ex.getMostSpecificCause().getMessage());
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Malformed JSON or invalid field type: " + ex.getMostSpecificCause().getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
     }
 
-    /**
-     * 5. DataIntegrityViolationException → HTTP 409 (Conflict)
-     *    当向数据库插入或更新时违反完整性（如外键、唯一索引、NOT NULL）时抛出。
-     */
+    // 400: 参数类型不匹配
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String msg = String.format(
+                "Parameter '%s' is invalid: expected type %s but got '%s'",
+                ex.getName(),
+                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown",
+                ex.getValue()
+        );
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                msg
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 迷你模糊
+    @ExceptionHandler(AmbiguousNameException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(AmbiguousNameException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 业务校验失败
+    @ExceptionHandler(InvalidTripDataException.class)
+    public ResponseEntity<ApiError> handleInvalidTrip(InvalidTripDataException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 409: 冲突（重复创建等）
+    @ExceptionHandler(TripAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleConflict(TripAlreadyExistsException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+
+    // 500: DB 未知约束或其他内部错误
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(
-            DataIntegrityViolationException ex) {
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Data Integrity Violation");
-        // 如果有更底层的异常信息，优先打印 rootCause
-        String message = ex.getRootCause() != null
-                ? ex.getRootCause().getMessage()
-                : ex.getMessage();
-        body.put("message", message);
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex) {
+        // 记录日志后，返回泛化提示
+        ApiError err = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Internal database error, please contact support"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
-
-    /**
-     * 6. 兜底捕获：所有其他未捕获的 Exception → HTTP 500
-     */
+    // 500: 兜底
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleAllOtherExceptions(Exception ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", ex.getMessage());
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiError> handleAll(Exception ex) {
+        ApiError err = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Internal server error"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
+
+
 }

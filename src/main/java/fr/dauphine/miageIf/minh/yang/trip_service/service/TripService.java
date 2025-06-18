@@ -6,9 +6,7 @@ import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripActivityDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripDayDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dto.*;
-import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.AmbiguousNameException;
-import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.BadRequestException;
-import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.NotFoundException;
+import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.*;
 import fr.dauphine.miageIf.minh.yang.trip_service.feign.InfoClient;
 import fr.dauphine.miageIf.minh.yang.trip_service.model.*;
 import lombok.AllArgsConstructor;
@@ -19,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +38,18 @@ public class TripService {
 
     @Transactional
     public TripDetail createTrip(TripRequestDto req) {
-        //1. 校验日期范围
-        long totalDays = ChronoUnit.DAYS.between(req.getStartDate(), req.getEndDate()) + 1;
-        if (req.getDays().size() != totalDays) {
-            throw new BadRequestException("days list must match date range");
+        // 天数与日期差校验
+        LocalDate start = req.getStartDate(), end = req.getEndDate();
+        long totalDays = ChronoUnit.DAYS.between(start, end) + 1;
+
+        if (totalDays != req.getDays().size()) {
+            throw new InvalidTripDataException(
+                    String.format("Days mismatch: expected %d but got %d", totalDays, req.getDays())
+            );
+        }
+        // 名称唯一
+        if (tripDao.existsByName(req.getName())) {
+            throw new TripAlreadyExistsException("name", req.getName());
         }
 
         // 2. 使用无参构造 + setter 来保证每个字段都被写到实体里
@@ -110,7 +118,9 @@ public class TripService {
 
     @Transactional
     public TripDetail updateTrip(Long tripId, TripRequestDto req) {
-        tripDao.findById(tripId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if(!tripDao.existsById(tripId)) {
+            throw new TripNotFoundException(tripId.toString());
+        }
         deleteTrip(tripId);
         req.setStartDate(req.getStartDate()); // reuse create logic
         req.setEndDate(req.getEndDate());
@@ -119,7 +129,7 @@ public class TripService {
 
     @Transactional
     public void deleteTrip(Long tripId) {
-        if (!tripDao.existsById(tripId)) throw new NotFoundException("Trip not found: " + tripId);
+        if (!tripDao.existsById(tripId)) throw new TripNotFoundException(tripId.toString());;
         tripDao.deleteById(tripId);
     }
 
@@ -216,6 +226,7 @@ public class TripService {
     @Transactional(readOnly = true)
     public TripPointsOfInterestDto getPointsOfInterest(Long tripId) {
         // 1) 所有 TripActivity → 取 activityId → 调用 getActivityById → 收集活动名称
+        Trip trip = tripDao.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found: " + tripId));
         Set<String> activityNames = tripActivityDao.findByTrip_Id(tripId).stream()
                 .map(TripActivity::getActivityId)
                 .map(infoClient::getActivityById)
@@ -256,6 +267,9 @@ public class TripService {
      * 在指定城市查找唯一的 AccommodationDto
      */
     private AccommodationDto findUniqueAccommodationByName(String cityId, String accommodationName) {
+        if(accommodationName==null){
+            throw new IncompleteInputDataException("You did not enter your accommodationName for at least one day");
+        }
         List<AccommodationDto> accs = infoClient.getAccommodationsByCityId(cityId).stream()
                 .filter(a -> a.getName().trim().equalsIgnoreCase(accommodationName.trim()))
                 .toList();
@@ -273,6 +287,9 @@ public class TripService {
      * 在指定城市查找唯一的 ActivityDto
      */
     private ActivityDto findUniqueActivity(String cityName, String cityId, String activityName){
+        if(activityName==null){
+            throw new IncompleteInputDataException("You did not enter your ActivityName for at least one day");
+        }
         // 先按城市名称端点过滤
         List<ActivityDto> acts = infoClient.getActivitiesByCityName(cityName).stream()
                 .filter(a -> a.getName().equalsIgnoreCase(activityName))
