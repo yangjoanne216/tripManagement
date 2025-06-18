@@ -295,3 +295,9 @@ db.createCollection("accommodation", {
   }
 });
 
+
+//（可选）在 city 集合的 name 字段上创建唯一索引
+db.city.createIndex(
+  { name: 1 },
+  { unique: true, name: "city_name_unique_idx" }
+)

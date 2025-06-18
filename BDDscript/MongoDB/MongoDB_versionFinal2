@@ -1,0 +1,202 @@
+
+
+// 3) 定义共享 ObjectId
+const city1Id = ObjectId("507f191e810c19729de860a1");
+const city2Id = ObjectId("507f191e810c19729de860a2");
+
+const poi1Id  = ObjectId("507f191e810c19729de860ea");
+const poi2Id  = ObjectId("507f191e810c19729de860eb");
+const poi3Id  = ObjectId("507f191e810c19729de860ec");
+const poi4Id  = ObjectId("507f191e810c19729de860ed");
+
+const act1Id  = ObjectId("507f191e810c19729de860f1");
+const act2Id  = ObjectId("507f191e810c19729de860f2");
+const act3Id  = ObjectId("507f191e810c19729de860f3");
+const act4Id  = ObjectId("507f191e810c19729de860f4");
+const act5Id  = ObjectId("507f191e810c19729de860f5");
+const act6Id  = ObjectId("507f191e810c19729de860f6");
+const act7Id  = ObjectId("507f191e810c19729de860f7");
+const act8Id  = ObjectId("507f191e810c19729de860f8");
+
+const acc1Id  = ObjectId("507f191e810c19729de860d1");
+const acc2Id  = ObjectId("507f191e810c19729de860d2");
+const acc3Id  = ObjectId("507f191e810c19729de860d3");
+const acc4Id  = ObjectId("507f191e810c19729de860d4");
+
+// 5) Insert Cities
+db.city.insertMany([
+  {
+    _id: city1Id,
+    name: "Montréal",
+    photos: [
+      "https://example.com/montreal1.jpg",
+      "https://example.com/montreal2.jpg"
+    ],
+    geoInfo: { lat: 45.50, lon: -73.57 }
+  },
+  {
+    _id: city2Id,
+    name: "Toronto",
+    photos: [
+      "https://example.com/toronto1.jpg",
+      "https://example.com/toronto2.jpg"
+    ],
+    geoInfo: { lat: 43.65, lon: -79.38 }
+  }
+]);
+
+// 6) Insert Points of Interest
+db.pointOfInterest.insertMany([
+  {
+    _id: poi1Id,
+    name: "Biodôme",
+    photos: [
+      "https://example.com/biodome1.jpg",
+      "https://example.com/biodome2.jpg"
+    ],
+    address: "4777 Pierre-De Coubertin Ave, Montréal, QC",
+    geoInfo: { lat: 45.56, lon: -73.55 },
+    cityId: city1Id
+  },
+  {
+    _id: poi2Id,
+    name: "Notre-Dame Basilica",
+    photos: [
+      "https://example.com/basilica1.jpg",
+      "https://example.com/basilica2.jpg"
+    ],
+    address: "110 Notre-Dame St W, Montréal, QC",
+    geoInfo: { lat: 45.50, lon: -73.56 },
+    cityId: city1Id
+  },
+  {
+    _id: poi3Id,
+    name: "CN Tower",
+    photos: [
+      "https://example.com/cntower1.jpg",
+      "https://example.com/cntower2.jpg"
+    ],
+    address: "290 Bremner Blvd, Toronto, ON",
+    geoInfo: { lat: 43.6426, lon: -79.3871 },
+    cityId: city2Id
+  },
+  {
+    _id: poi4Id,
+    name: "Royal Ontario Museum",
+    photos: [
+      "https://example.com/rom1.jpg",
+      "https://example.com/rom2.jpg"
+    ],
+    address: "100 Queens Park, Toronto, ON",
+    geoInfo: { lat: 43.6677, lon: -79.3948 },
+    cityId: city2Id
+  }
+]);
+
+// 7) Insert Activities (invalid “Year-round” seasons changed to ["April"])
+db.activity.insertMany([
+  {
+    _id: act1Id,
+    name: "Biodôme Tour",
+    photos: ["https://example.com/biodomeTour.jpg"],
+    seasons: ["April","May","June"],
+    price: { adult: 24, child: 15 },
+    pointOfInterestId: poi1Id
+  },
+  {
+    _id: act2Id,
+    name: "Photography Workshop",
+    photos: ["https://example.com/photoWorkshop.jpg"],
+    seasons: ["May","June"],
+    price: { adult: 50, child: 30 },
+    pointOfInterestId: poi1Id
+  },
+  {
+    _id: act3Id,
+    name: "Mass Attendance",
+    photos: ["https://example.com/mass.jpg"],
+    seasons: ["April"],
+    price: { adult: 0, child: 0 },
+    pointOfInterestId: poi2Id
+  },
+  {
+    _id: act4Id,
+    name: "Architecture Tour",
+    photos: ["https://example.com/archTour.jpg"],
+    seasons: ["June","July"],
+    price: { adult: 20, child: 10 },
+    pointOfInterestId: poi2Id
+  },
+  {
+    _id: act5Id,
+    name: "Skypod Visit",
+    photos: ["https://example.com/skypod.jpg"],
+    seasons: ["April"],
+    price: { adult: 38, child: 28 },
+    pointOfInterestId: poi3Id
+  },
+  {
+    _id: act6Id,
+    name: "Edge Walk",
+    photos: ["https://example.com/edgeWalk.jpg"],
+    seasons: ["April","May","June"],
+    price: { adult: 225, child: 225 },
+    pointOfInterestId: poi3Id
+  },
+  {
+    _id: act7Id,
+    name: "Exhibition Tour",
+    photos: ["https://example.com/exhibit.jpg"],
+    seasons: ["April"],
+    price: { adult: 23, child: 14 },
+    pointOfInterestId: poi4Id
+  },
+  {
+    _id: act8Id,
+    name: "Workshop",
+    photos: ["https://example.com/workshop.jpg"],
+    seasons: ["May","June"],
+    price: { adult: 50, child: 30 },
+    pointOfInterestId: poi4Id
+  }
+]);
+
+// 8) Insert Accommodations
+db.accommodation.insertMany([
+  {
+    _id: acc1Id,
+    name: "Hotel X",
+    address: "123 Rue St-Pierre, Montréal, QC",
+    photos: ["https://example.com/hotelx1.jpg"],
+    price: 120,
+    available: true,
+    cityId: city1Id
+  },
+  {
+    _id: acc2Id,
+    name: "Auberge Y",
+    address: "456 Boulevard St-Laurent, Montréal, QC",
+    photos: ["https://example.com/aubergey1.jpg"],
+    price: 90,
+    available: false,
+    cityId: city1Id
+  },
+  {
+    _id: acc3Id,
+    name: "Fairmont Royal York",
+    address: "100 Front St W, Toronto, ON",
+    photos: ["https://example.com/fairmont1.jpg"],
+    price: 250,
+    available: true,
+    cityId: city2Id
+  },
+  {
+    _id: acc4Id,
+    name: "The Drake Hotel",
+    address: "1150 Queen St W, Toronto, ON",
+    photos: ["https://example.com/drake1.jpg"],
+    price: 180,
+    available: true,
+    cityId: city2Id
+  }
+]);

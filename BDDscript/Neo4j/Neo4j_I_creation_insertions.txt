@@ -5,8 +5,10 @@ MATCH (n) DETACH DELETE n;
 CREATE CONSTRAINT cityIdUnique IF NOT EXISTS
   FOR (c:City) REQUIRE c.cityId IS UNIQUE;
 
-CREATE INDEX cityNameIndex IF NOT EXISTS
-  FOR (c:City) ON (c.name);
+DROP INDEX cityNameIndex IF EXISTS;
+
+CREATE CONSTRAINT cityNameUnique IF NOT EXISTS
+  FOR (c:City) REQUIRE c.name IS UNIQUE;
 
 // 2) Create all City nodes
 CREATE 

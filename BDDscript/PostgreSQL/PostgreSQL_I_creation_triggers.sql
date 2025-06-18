@@ -71,3 +71,57 @@ CREATE TRIGGER trg_check_trip_day_accommodation
   FOR EACH ROW EXECUTE FUNCTION check_trip_day();
 
 
+-- 7) Add nouveau
+BEGIN;
+
+-- 1) 定义或替换触发器函数（如果已存在会替换），放在最前面
+CREATE OR REPLACE FUNCTION public.check_trip_day()
+  RETURNS TRIGGER
+AS $$
+DECLARE
+  max_days INT;
+BEGIN
+  SELECT (t.end_date - t.start_date + 1)
+    INTO max_days
+    FROM trip t
+   WHERE t.id = NEW.trip_id;
+
+  IF NEW.day > max_days THEN
+    RAISE EXCEPTION
+      'trip_id=% day=% Exceeding the total number of days for the trip %', NEW.trip_id, NEW.day, max_days;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2) 创建 trip_day 表
+CREATE TABLE IF NOT EXISTS trip_day (
+  trip_id   INT  NOT NULL
+    REFERENCES trip(id) ON DELETE CASCADE,
+  day       INT  NOT NULL,
+  city_id   CHAR(24) NOT NULL
+    CONSTRAINT chk_city_id_fmt CHECK (city_id ~ '^[0-9a-f]{24}$'),
+  PRIMARY KEY (trip_id, day)
+);
+
+-- 3) 针对不同版本 Postgres 创建触发器
+-- 如果是 Postgres 11+，使用 EXECUTE FUNCTION：
+DO $$
+BEGIN
+  IF (SELECT current_setting('server_version_num')::int) >= 110000 THEN
+    CREATE TRIGGER trg_check_trip_day_day
+      BEFORE INSERT OR UPDATE ON trip_day
+      FOR EACH ROW
+      EXECUTE FUNCTION public.check_trip_day();
+  ELSE
+    -- 旧版用 EXECUTE PROCEDURE
+    CREATE TRIGGER trg_check_trip_day_day
+      BEFORE INSERT OR UPDATE ON trip_day
+      FOR EACH ROW
+      EXECUTE PROCEDURE public.check_trip_day();
+  END IF;
+END;
+$$;
+
+COMMIT;
+COMMIT;
