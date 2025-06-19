@@ -8,6 +8,7 @@ import fr.dauphine.miageIf.minh.yang.trip_service.dao.TripDayDao;
 import fr.dauphine.miageIf.minh.yang.trip_service.dto.*;
 import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.*;
 import fr.dauphine.miageIf.minh.yang.trip_service.feign.InfoClient;
+import fr.dauphine.miageIf.minh.yang.trip_service.feign.RouteClient;
 import fr.dauphine.miageIf.minh.yang.trip_service.model.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class TripService {
     private final TripAccommodationDao tripAccommodationDao;
     private final InfoClient infoClient;
     //private static final Logger log = LoggerFactory.getLogger(TripService.class);
-    //private final RouteClient routeClient;
+    private final RouteClient routeClient;
 
     @Transactional
     public TripDetail createTrip(TripRequestDto req) {
@@ -138,7 +139,7 @@ public class TripService {
 
     @Transactional
     public void deleteTrip(Long tripId) {
-        if (!tripDao.existsById(tripId)) throw new TripNotFoundException(tripId.toString());
+        if (!tripDao.existsById(tripId)) throw new TripNotFoundException(tripId.toString());;
         tripDao.deleteById(tripId);
     }
 
@@ -193,16 +194,16 @@ public class TripService {
             List<String> activityNames = tripActivityDao.findByTrip_IdAndId_Day(tripId, td.getId().getDay())
                     .stream().map(ta -> infoClient.getActivityById(ta.getActivityId()).getName())
                     .collect(Collectors.toList());
-            //Todo
-            //TripDetail.ToNext toNext = null;
+
+            TripDetail.ToNext toNext = null;
             if (i < days.size() - 1) {
                 String from = td.getCityId();
                 String to   = days.get(i+1).getCityId();
-             //   ToNextDto tn = routeClient.getDistance(from, to);
-             //   toNext = new TripDetail.ToNext(tn.getDistanceKm(), tn.getTravelTimeMin());
+                RouteSummaryResponse summary = routeClient.getRouteSummary(from, to);
+                toNext = new TripDetail.ToNext(summary.getDistanceKm(), summary.getTravelTimeMin());
             }
             //dtos.add(new TripDetail.TripDayDto(td.getId().getDay(), city.getName(), accName, activityNames, toNext));
-            dtos.add(new TripDetail.TripDayDto(td.getId().getDay(), city.getName(), accName, activityNames));
+            dtos.add(new TripDetail.TripDayDto(td.getId().getDay(), city.getName(), accName, activityNames, toNext));
         }
         return new TripDetail(trip.getId(), trip.getName(), trip.getStartDate(), trip.getEndDate(), dtos);
 

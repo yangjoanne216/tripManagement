@@ -34,16 +34,16 @@ public class TripDetail {
         private String cityName;                // 当天所在城市名称
         private String accommodationName;       // 当天住宿名称
         private List<String> activityNames;     // 当天所有活动名称，按顺序
-        //private ToNext toNext;                  // 当天到下一天城市的距离/时间（最后一天为 null）
+        private ToNext toNext;                  // 当天到下一天城市的距离/时间（最后一天为 null）
     }
 
-    /*@Data
+    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ToNext {
         private double distanceKm;              // 相邻两城公里数
         private int travelTimeMin;              // 预计分钟数
-    }*/
+    }
 
 
 }
