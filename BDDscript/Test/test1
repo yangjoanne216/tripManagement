@@ -1,0 +1,24 @@
+# 数据的插入
+createTrip
+
+{
+  "name": "test  tt day",
+  "startDate": "2025-06-18",
+  "endDate": "2025-06-19",
+  "days": [
+    {
+      "cityName": "Montréal",
+      "accommodationName": "Hotel X",
+      "activityNames": [
+        "Biodôme Tour"
+      ]
+    },
+    {
+      "cityName": "Toronto",
+      "accommodationName": "Fairmont Royal York",
+      "activityNames": [
+        "Skypod Visit"
+      ]
+    }
+  ]
+}

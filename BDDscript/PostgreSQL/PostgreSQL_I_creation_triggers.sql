@@ -125,3 +125,8 @@ $$;
 
 COMMIT;
 COMMIT;
+
+--- 从 trip 表中删除 start_city、end_city 两列。
+-- ALTER TABLE trip DROP COLUMN start_city, DROP COLUMN end_city;
+-- ALTER TABLE trip ALTER COLUMN start_city SET NOT NULL;
+-- ALTER TABLE trip ALTER COLUMN end_city   SET NOT NULL;
