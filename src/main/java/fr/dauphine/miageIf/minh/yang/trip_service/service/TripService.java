@@ -284,8 +284,7 @@ public class TripService {
                 .filter(a -> a.getName().trim().equalsIgnoreCase(accommodationName.trim()))
                 .toList();
 
-        if (accs.isEmpty()) {
-            throw new NotFoundException("Accommodation not found: " + accommodationName);
+        if (accs.isEmpty()) {throw new NotFoundException("Accommodation not found: " + accommodationName +"in this city");
         }
         if (accs.size() > 1) {
             throw new AmbiguousNameException("Ambiguous accommodation: " + accommodationName);
@@ -306,7 +305,7 @@ public class TripService {
                 .collect(Collectors.toList());
 
         if (acts.isEmpty()) {
-            throw new NotFoundException("Activity not found: " + activityName);
+            throw new NotFoundException("Activity not found: " + activityName + "in this city");
         }
         if (acts.size() > 1) {
             throw new AmbiguousNameException("Ambiguous activity: " + activityName);
