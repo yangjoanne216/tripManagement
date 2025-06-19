@@ -10,14 +10,9 @@ import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.*;
 import fr.dauphine.miageIf.minh.yang.trip_service.feign.InfoClient;
 import fr.dauphine.miageIf.minh.yang.trip_service.model.*;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -33,20 +28,34 @@ public class TripService {
     private final TripActivityDao tripActivityDao;
     private final TripAccommodationDao tripAccommodationDao;
     private final InfoClient infoClient;
-    private static final Logger log = LoggerFactory.getLogger(TripService.class);
+    //private static final Logger log = LoggerFactory.getLogger(TripService.class);
     //private final RouteClient routeClient;
 
     @Transactional
     public TripDetail createTrip(TripRequestDto req) {
-        // 天数与日期差校验
-        LocalDate start = req.getStartDate(), end = req.getEndDate();
+        LocalDate start = req.getStartDate();
+        LocalDate end = req.getEndDate();
+
+    // 计算包含首尾在内的总天数
         long totalDays = ChronoUnit.DAYS.between(start, end) + 1;
 
-        if (totalDays != req.getDays().size()) {
+    // 先检查 days 不为 null，再校验长度
+        if (req.getDays() == null) {
             throw new InvalidTripDataException(
-                    String.format("Days mismatch: expected %d but got %d", totalDays, req.getDays())
+                    String.format("Days list must not be null for a %d-day trip", totalDays)
             );
         }
+        if (totalDays != req.getDays().size()) {
+            throw new InvalidTripDataException(
+                    String.format(
+                            "Days mismatch: expected %d but got %d (%s)",
+                            totalDays,
+                            req.getDays().size(),
+                            req.getDays()
+                    )
+            );
+        }
+
         // 名称唯一
         if (tripDao.existsByName(req.getName())) {
             throw new TripAlreadyExistsException("name", req.getName());
@@ -267,8 +276,8 @@ public class TripService {
      * 在指定城市查找唯一的 AccommodationDto
      */
     private AccommodationDto findUniqueAccommodationByName(String cityId, String accommodationName) {
-        if(accommodationName==null){
-            throw new IncompleteInputDataException("You did not enter your accommodationName for at least one day");
+        if (accommodationName == null) {
+            throw new IncompleteInputDataException("You did not enter your ccommodationName for at least one day");
         }
         List<AccommodationDto> accs = infoClient.getAccommodationsByCityId(cityId).stream()
                 .filter(a -> a.getName().trim().equalsIgnoreCase(accommodationName.trim()))
