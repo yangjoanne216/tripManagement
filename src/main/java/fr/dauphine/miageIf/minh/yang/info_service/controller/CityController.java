@@ -114,7 +114,7 @@ public class CityController {
         return pointOfInterestService.findByCityName(name);
     }
 
-    @Operation(
+    /*@Operation(
             summary = "Get activities by city name",
             description = "Retrieve all activities available in the specified city."
     )
@@ -125,7 +125,7 @@ public class CityController {
     @GetMapping("/name/{name}/activities")
     public List<ActivityDto> getActivitiesByCityName(@PathVariable String name) {
         return activityService.findByCityName(name);
-    }
+    }*/
 
     @Operation(
             summary = "Get city by name",

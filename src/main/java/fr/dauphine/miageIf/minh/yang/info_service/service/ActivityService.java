@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.info_service.service;
 
 import com.mongodb.DuplicateKeyException;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.ActivityRepository;
+import fr.dauphine.miageIf.minh.yang.info_service.dao.CityRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dao.PointOfInterestRepository;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityDto;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ActivityUpdateOrCreateDto;
@@ -27,6 +28,7 @@ public class ActivityService {
     @Qualifier("activityMapperImpl")
     private final ActivityMapper mapper;
     private final PointOfInterestService poiService;
+    private final CityRepository cityRepository;
 
     public ActivityDto create(ActivityUpdateOrCreateDto dto) {
         // 检查 pointOfInterestId 引用是否存在
@@ -82,6 +84,9 @@ public class ActivityService {
 
     /** 新：按城市名称查所有活动 */
     public List<ActivityDto> findByCityName(String cityName) {
+        if(!cityRepository.existsByName(cityName)) {
+            throw new ResourceNotFoundException("Activity not found by Name: " + cityName);
+        }
         // 先拿到这个城市的所有 POI
         List<PointOfInterestDto> pois = poiService.findByCityName(cityName);
         List<ObjectId> poiIds = pois.stream()
