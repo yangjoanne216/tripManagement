@@ -1,0 +1,156 @@
+package fr.dauphine.miageIf.minh.yang.trip_service.controller.handler;
+
+import fr.dauphine.miageIf.minh.yang.trip_service.dto.ApiError;
+import fr.dauphine.miageIf.minh.yang.trip_service.exceptions.*;
+import io.swagger.v3.oas.annotations.Hidden;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@Hidden
+@RestControllerAdvice
+public class GlobalExceptionHandle {
+    // 404: Trip 不存在
+    @ExceptionHandler(TripNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(TripNotFoundException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
+    //404:Accommodation/Activity/POI/CITY 不存在
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
+    // 400: DTO 校验失败
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String,String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(fe ->
+                errors.put(fe.getField(), fe.getDefaultMessage())
+        );
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Validation failed"
+        );
+        err.setDetails(errors);
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    @ExceptionHandler(IncompleteInputDataException.class)
+    public ResponseEntity<ApiError> handleValidation(IncompleteInputDataException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: JSON 反序列化或类型错误
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Malformed JSON or invalid field type: " + ex.getMostSpecificCause().getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 参数类型不匹配
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String msg = String.format(
+                "Parameter '%s' is invalid: expected type %s but got '%s'",
+                ex.getName(),
+                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown",
+                ex.getValue()
+        );
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                msg
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 迷你模糊
+    @ExceptionHandler(AmbiguousNameException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(AmbiguousNameException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 业务校验失败
+    @ExceptionHandler(InvalidTripDataException.class)
+    public ResponseEntity<ApiError> handleInvalidTrip(InvalidTripDataException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 409: 冲突（重复创建等）
+    @ExceptionHandler(TripAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleConflict(TripAlreadyExistsException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+
+    // 500: DB 未知约束或其他内部错误
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex) {
+        // 记录日志后，返回泛化提示
+        ApiError err = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Internal database error, please contact support"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+    }
+    // 500: 兜底
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleAll(Exception ex) {
+        ApiError err = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Internal server error"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+    }
+
+
+}
