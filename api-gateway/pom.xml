@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.0</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>fr.dauphine.miageIf.minh.yang</groupId>
 	<artifactId>api-gateway</artifactId>
