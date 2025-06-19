@@ -138,7 +138,7 @@ public class TripService {
 
     @Transactional
     public void deleteTrip(Long tripId) {
-        if (!tripDao.existsById(tripId)) throw new TripNotFoundException(tripId.toString());;
+        if (!tripDao.existsById(tripId)) throw new TripNotFoundException(tripId.toString());
         tripDao.deleteById(tripId);
     }
 
