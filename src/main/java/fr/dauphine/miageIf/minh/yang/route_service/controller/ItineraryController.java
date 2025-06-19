@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.route_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.route_service.dto.ItineraryResponse;
+import fr.dauphine.miageIf.minh.yang.route_service.dto.RouteSummaryResponse;
 import fr.dauphine.miageIf.minh.yang.route_service.service.ItineraryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,6 +46,7 @@ public class ItineraryController {
                     + "(minimum number of hops). "
                     + "If 'maxStops' is provided (an integer), returns all possible paths where the number of intermediate nodes "
                     + "is less than or equal to maxStops. "
+                    + "If sourceCityId = destinationCityId, path is null."
                     + "Responses are returned as a JSON array of ItineraryResponse objects, each containing a 'cityIds' list. "
                     + "If no path exists, returns an empty list (for maxStops case) or a single ItineraryResponse with an empty 'cityIds' list (for shortest‐path case). "
                     + "If either sourceCityId or destinationCityId does not exist, returns HTTP 404 Not Found."
@@ -54,6 +57,10 @@ public class ItineraryController {
             @RequestParam("destination") String destinationCityId,
             @RequestParam(name = "maxStops", required = false) Integer maxStops
     ) {
+        if(sourceCityId.equals(destinationCityId)) {
+            List<ItineraryResponse> nullPath = new ArrayList<>();
+            return ResponseEntity.ok(nullPath);
+        }
         if (maxStops == null) {
             // 查询最短路径
             ItineraryResponse single = itineraryService.getShortestPath(sourceCityId, destinationCityId);
@@ -65,4 +72,24 @@ public class ItineraryController {
             return ResponseEntity.ok(allPaths);
         }
     }
+
+    @Operation(
+            summary = "Route summary (sum of distance & time on shortest path)",
+            description = """
+        Given sourceCityId and destinationCityId, compute the sum of distanceKm
+        and travelTimeMin along their shortest path (fewest hops).
+        1) If source == destination → {0.0, 0}.
+        2) If no path exists → {99999.0, 99999}.
+        3) Otherwise → sums of r.distanceKm & r.travelTimeMin.
+      """
+    )
+    @GetMapping("/summary")
+    public ResponseEntity<RouteSummaryResponse> getRouteSummary(
+            @RequestParam("source")      String src,
+            @RequestParam("destination") String dst
+    ) {
+        RouteSummaryResponse summary = itineraryService.getRouteSummary(src, dst);
+        return ResponseEntity.ok(summary);
+    }
+
 }

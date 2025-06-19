@@ -1,4 +1,4 @@
-package fr.dauphine.miageIf.minh.yang.route_service.controller.handle;
+package fr.dauphine.miageIf.minh.yang.route_service.controller.handler;
 
 import fr.dauphine.miageIf.minh.yang.route_service.controller.CityController;
 import fr.dauphine.miageIf.minh.yang.route_service.controller.EdgeController;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -174,7 +173,6 @@ public class GlobalDefaultExceptionHandler {
     // 处理所有未被捕获的 Exception，返回 HTTP 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAllUnhandledExceptions(Exception ex) {
-        // 可记录日志：logger.error("Unhandled exception", ex);
         ApiError err = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),

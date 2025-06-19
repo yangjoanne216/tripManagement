@@ -2,6 +2,7 @@ package fr.dauphine.miageIf.minh.yang.route_service.service;
 
 import fr.dauphine.miageIf.minh.yang.route_service.dao.CityDao;
 import fr.dauphine.miageIf.minh.yang.route_service.dto.ItineraryResponse;
+import fr.dauphine.miageIf.minh.yang.route_service.dto.RouteSummaryResponse;
 import fr.dauphine.miageIf.minh.yang.route_service.exceptions.CityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -90,4 +91,57 @@ public class ItineraryService {
                 })
                 .all();
     }
+
+    /**
+     * 计算 source → destination 最短路径（最少 hops）上所有关系的
+     * distanceKm 总和和 travelTimeMin 总和。
+     * 逻辑：
+     *   1) source == destination → {0.0, 0}
+     *   2) path 不存在 → {99999.0, 99999}
+     *   3) 否则 → sums
+     */
+    @Transactional(readOnly = true)
+    public RouteSummaryResponse getRouteSummary(String sourceCityId, String destinationCityId) {
+        // 1) 自身相等
+        if (sourceCityId.equals(destinationCityId)) {
+            return new RouteSummaryResponse(0.0, 0);
+        }
+        // 2) 验证存在
+        if (!cityDao.existsByCityId(sourceCityId)) {
+            throw new CityNotFoundException(sourceCityId);
+        }
+        if (!cityDao.existsByCityId(destinationCityId)) {
+            throw new CityNotFoundException(destinationCityId);
+        }
+
+        // 3) 用 CASE+reduce 明确区分 “无路径” / “有路径” 两种情况
+        String cypher = """
+            MATCH (s:City {cityId: $src}), (d:City {cityId: $dst})
+            OPTIONAL MATCH p = shortestPath((s)-[:LOCATED_AT*]-(d))
+            RETURN
+              CASE
+                WHEN p IS NULL
+                THEN 99999.0
+                ELSE reduce(acc = 0.0, r IN relationships(p) | acc + r.distanceKm)
+              END AS distanceSum,
+              CASE
+                WHEN p IS NULL
+                THEN 99999
+                ELSE reduce(acc = 0, r IN relationships(p) | acc + r.travelTimeMin)
+              END AS timeSum
+            """;
+
+        Map<String,Object> rec = neo4jClient.query(cypher)
+                .bind(sourceCityId).to("src")
+                .bind(destinationCityId).to("dst")
+                .fetch().first()
+                .orElseThrow();  // 理论上不会抛，因为 MATCH s,d 一定有记录
+
+        double dist = ((Number) rec.get("distanceSum")).doubleValue();
+        int    tmin = ((Number) rec.get("timeSum")).intValue();
+        return new RouteSummaryResponse(dist, tmin);
+    }
 }
+
+
+
