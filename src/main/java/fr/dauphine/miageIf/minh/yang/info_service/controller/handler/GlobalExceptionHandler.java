@@ -19,6 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.naming.ServiceUnavailableException;
 import java.util.HashMap;
 import java.util.Map;
 @Hidden
@@ -83,5 +84,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleAll(Exception ex) {
         ApiError err = new ApiError("Internal server error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+    }
+    //--------------------------------------------
+    // 503: 同步异常
+    //--------------------------------------------
+    public ResponseEntity<ApiError> handleServiceUnavailable(ServiceUnavailableException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(err);
     }
 }
