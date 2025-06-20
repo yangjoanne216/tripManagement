@@ -91,10 +91,10 @@ public class TripController {
     }
 
     @Operation(
-            summary = "Get points of interest for a trip",
+            summary = "Get points of interest/activities/accommodations for a trip",
             description = "Returns all involved POI names, activity names and accommodation names in a trip."
     )
-    @GetMapping("/{tripId}/points-of-interest")
+    @GetMapping("/{tripId}/POI_activity_accommodation")
     public ResponseEntity<TripPointsOfInterestDto> getPointsOfInterest(
             @PathVariable Long tripId
     ) {

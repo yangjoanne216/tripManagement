@@ -97,7 +97,7 @@ public class TripService {
             // —— trip_activity ——
             int seq = 1;
             for (String actName : in.getActivityNames()) {
-                ActivityDto activity = findUniqueActivity(in.getCityName(), city.getId(), actName);
+                ActivityDto activity = findUniqueActivity(in.getCityName(),actName);
                 TripActivity tapp = new TripActivity();
                 TripActivityKey actKey = new TripActivityKey(trip.getId(), day, seq++);
                 tapp.setId(actKey);
@@ -110,21 +110,6 @@ public class TripService {
         // 5. 返回完整的 DTO
         return getTrip(trip.getId());
     }
-
-   /* @Transactional
-    public TripDetail updateTrip(Long tripId, TripRequestDto req) {
-        Trip existing = tripDao.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found: " + tripId));
-        existing.setName(req.getName());
-        existing.setStartDate(req.getStartDate());
-        existing.setEndDate(req.getEndDate());
-        tripDao.save(existing);
-        // 清除旧记录
-        tripDayDao.deleteAll(tripDayDao.findByTrip_Id(tripId));
-        tripActivityDao.deleteAll(tripActivityDao.findByTrip_Id(tripId));
-        tripAccommodationDao.deleteAll(tripAccommodationDao.findByTrip_Id(tripId));
-        // 重建
-        return createTrip(req);
-    }*/
 
     @Transactional
     public TripDetail updateTrip(Long tripId, TripRequestDto req) {
@@ -143,42 +128,6 @@ public class TripService {
         tripDao.deleteById(tripId);
     }
 
-    /*@Transactional(readOnly = true)
-    public TripDetail getTrip(Long tripId) {
-        Trip trip = tripDao.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found: " + tripId));
-        // 构建详细 DTO
-        List<TripDay> days = tripDayDao.findByTrip_IdOrderById_Day(tripId);
-        TripDetail detail = new TripDetail();
-        detail.setId(trip.getId());
-        detail.setName(trip.getName());
-        detail.setStartDate(trip.getStartDate());
-        detail.setEndDate(trip.getEndDate());
-        List<TripDetail.TripDayDto> dayDtos = new ArrayList<>();
-        for (int i = 0; i < days.size(); i++) {
-            TripDay td = days.get(i);
-            CityDto city = infoClient.getCityById(td.getCityId());
-            TripDetail.TripDayDto dto = new TripDetail.TripDayDto();
-            dto.setDay(td.getId().getDay());
-            dto.setCityName(city.getName());
-            dto.setAccommodationName(infoClient.getAccommodationById(
-                    tripAccommodationDao.findByTrip_IdAndId_Day(tripId, td.getId().getDay())
-                            .orElseThrow(() -> new NotFoundException("Accommodation missing for day"+td.getId().getDay()))
-                            .getAccommodationId()).getName());
-            List<String> acts = tripActivityDao.findByTrip_IdAndId_Day(tripId, td.getId().getDay()).stream()
-                    .map(ta -> infoClient.getActivityById(ta.getActivityId()).getName())
-                    .collect(Collectors.toList());
-            dto.setActivityNames(acts);
-            if (i < days.size() - 1) {
-                TripDay next = days.get(i+1);
-                //todo
-                //var dist = routeClient.getDistance(td.getCityId(), next.getCityId());
-                //dto.setToNext(new TripDetail.ToNext(dist.getDistanceKm(), dist.getTravelTimeMin()));
-            }
-            dayDtos.add(dto);
-        }
-        detail.setDays(dayDtos);
-        return detail;
-    }*/
     @Transactional(readOnly = true)
     public TripDetail getTrip(Long tripId) {
         Trip trip = tripDao.findById(tripId).orElseThrow(() -> new NotFoundException("Trip not found: " + tripId));
@@ -209,6 +158,7 @@ public class TripService {
 
     }
 
+
     @Transactional(readOnly = true)
     public List<TripSummary> searchTrips(Integer minDays, Integer maxDays) {
         return tripDao.findAll().stream()
@@ -217,21 +167,6 @@ public class TripService {
                 .filter(s -> (minDays==null||s.getDayCount()>=minDays) && (maxDays==null||s.getDayCount()<=maxDays))
                 .collect(Collectors.toList());
     }
-
-    /*@Transactional(readOnly = true)
-    public TripPointsOfInterestDto getPointsOfInterest(Long tripId) {
-        Set<String> actNames = tripActivityDao.findByTrip_Id(tripId).stream()
-                .map(ta -> infoClient.getActivityById(ta.getActivityId()).getName())
-                .collect(Collectors.toSet());
-        Set<String> accNames = tripAccommodationDao.findByTrip_Id(tripId).stream()
-                .map(tac -> infoClient.getAccommodationById(tac.getAccommodationId()).getName())
-                .collect(Collectors.toSet());
-        // POI names via activities
-        Set<String> poiNames = tripActivityDao.findByTrip_Id(tripId).stream()
-                .map(ta -> infoClient.getActivityById(ta.getActivityId()).getPointOfInterest().getName())
-                .collect(Collectors.toSet());
-        return new TripPointsOfInterestDto(actNames, accNames, poiNames);
-    }*/
 
     @Transactional(readOnly = true)
     public TripPointsOfInterestDto getPointsOfInterest(Long tripId) {
@@ -268,8 +203,10 @@ public class TripService {
     private CityDto findUniqueCity(String name) {
         try {
             return infoClient.getCityByName(name);
-        } catch (FeignException.NotFound ex) {
+        } catch (FeignException.NotFound nf) {
             throw new NotFoundException("City not found: " + name);
+        } catch (FeignException fe) {
+            throw new ServiceUnavailableException("Info-service unavailable when fetching city: " + name, fe);
         }
     }
 
@@ -277,6 +214,26 @@ public class TripService {
      * 在指定城市查找唯一的 AccommodationDto
      */
     private AccommodationDto findUniqueAccommodationByName(String cityId, String accommodationName) {
+        if (accommodationName == null || accommodationName.isBlank()) {
+            throw new IncompleteInputDataException("accommodationName is required");
+        }
+        List<AccommodationDto> accs;
+        try {
+            accs = infoClient.getAccommodationsByCityId(cityId);
+        } catch (FeignException.NotFound nf) {
+            throw new NotFoundException("City not found when listing accommodations: " + cityId);
+        } catch (FeignException fe) {
+            throw new ServiceUnavailableException("Info-service unavailable when fetching accommodations for city: " + cityId, fe);
+        }
+        accs = accs.stream()
+                .filter(a -> a.getName().equalsIgnoreCase(accommodationName.trim()))
+                .toList();
+        if (accs.isEmpty()) throw new NotFoundException("Accommodation not found: " + accommodationName);
+        if (accs.size() > 1)  throw new AmbiguousNameException("Ambiguous accommodation: " + accommodationName);
+        return accs.get(0);
+    }
+
+    /*private AccommodationDto findUniqueAccommodationByName(String cityId, String accommodationName) {
         if (accommodationName == null) {
             throw new IncompleteInputDataException("You did not enter your ccommodationName for at least one day");
         }
@@ -290,12 +247,31 @@ public class TripService {
             throw new AmbiguousNameException("Ambiguous accommodation: " + accommodationName);
         }
         return accs.get(0);
-    }
+    }*/
 
     /**
      * 在指定城市查找唯一的 ActivityDto
      */
-    private ActivityDto findUniqueActivity(String cityName, String cityId, String activityName){
+    private ActivityDto findUniqueActivity(String cityName, String activityName) {
+        if (activityName == null || activityName.isBlank()) {
+            throw new IncompleteInputDataException("activityName is required");
+        }
+        List<ActivityDto> acts;
+        try {
+            acts = infoClient.getActivitiesByCityName(cityName);
+        } catch (FeignException.NotFound nf) {
+            throw new NotFoundException("City not found when listing activities: " + cityName);
+        } catch (FeignException fe) {
+            throw new ServiceUnavailableException("Info-service unavailable when fetching activities for city: " + cityName, fe);
+        }
+        acts = acts.stream()
+                .filter(a -> a.getName().equalsIgnoreCase(activityName.trim()))
+                .toList();
+        if (acts.isEmpty()) throw new NotFoundException("Activity not found: " + activityName);
+        if (acts.size() > 1)  throw new AmbiguousNameException("Ambiguous activity: " + activityName);
+        return acts.get(0);
+    }
+    /*private ActivityDto findUniqueActivity(String cityName, String cityId, String activityName){
         if(activityName==null){
             throw new IncompleteInputDataException("You did not enter your ActivityName for at least one day");
         }
@@ -312,41 +288,7 @@ public class TripService {
         }
         return acts.get(0);
 
-    }
-
-    /*private ActivityDto findUniqueActivity2(String cityName, String cityId, String activityName) {
-        // 先按城市名称端点过滤
-        List<ActivityDto> acts = infoClient.getActivitiesByCityName>>(cityName).stream()
-                .filter(a -> a.getName().equalsIgnoreCase(activityName))
-                .collect(Collectors.toList());
-
-        // 回退到按 POI ID 批量查询
-        if (acts.isEmpty()) {
-            List<String> poiIds = fetchPoiIds(cityName, cityId);
-            acts = infoClient.getActivitiesByPoiIds(poiIds).stream()
-                    .filter(a -> a.getName().equalsIgnoreCase(activityName))
-                    .collect(Collectors.toList());
-        }
-        if (acts.isEmpty()) {
-            throw new NotFoundException("Activity not found: " + activityName);
-        }
-        if (acts.size() > 1) {
-            throw new AmbiguousNameException("Ambiguous activity: " + activityName);
-        }
-        return acts.get(0);
     }*/
 
-    /**
-     * 通过城市名称获取该城市所有 POI，再筛出 ID 列表
-
-    private List<String> fetchPoiIds(String cityName, String cityId) {
-        List<PointOfInterestDto> pois = infoClient.getPoisByCityName(cityName);
-        if (pois.isEmpty()) {
-            pois = infoClient.getPoisByCityId(cityId);
-        }
-        return pois.stream()
-                .map(PointOfInterestDto::getId)
-                .collect(Collectors.toList());
-    }*/
 
 }
