@@ -88,6 +88,7 @@ public class GlobalExceptionHandler {
     //--------------------------------------------
     // 503: 同步异常
     //--------------------------------------------
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleServiceUnavailable(ServiceUnavailableException ex) {
         ApiError err = new ApiError(
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
