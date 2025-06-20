@@ -1,0 +1,243 @@
+// —— 1）Create Trip（3 天） ——
+{
+  "name": "ParisLyonGrenobleTrip100",
+  "startDate": "2025-07-10",
+  "endDate":   "2025-07-12",
+  "days": [
+    {
+      "cityName":          "Paris",
+      "accommodationName": "accommodation1Paris",
+      "activityNames": [
+        "activity1POI1Paris",
+        "activity2POI2Paris"
+      ]
+    },
+    {
+      "cityName":          "Lyon",
+      "accommodationName": "accommodation2Lyon",
+      "activityNames": [
+        "activity1POI1Lyon",
+        "activity3POI2Lyon"
+      ]
+    },
+    {
+      "cityName":          "Grenoble",
+      "accommodationName": "accommodation3Grenoble",
+      "activityNames": [
+        "activity2POI1Grenoble",
+        "activity1POI2Grenoble"
+      ]
+    }
+  ]
+}
+
+// —— 2）Create Trip（4 天） ——
+{
+  "name": "LyonStrasbourgParisDijonTrip100",
+  "startDate": "2025-08-01",
+  "endDate":   "2025-08-04",
+  "days": [
+    {
+      "cityName":          "Lyon",
+      "accommodationName": "accommodation1Lyon",
+      "activityNames": [
+        "activity1POI1Lyon",
+        "activity2POI2Lyon"
+      ]
+    },
+    {
+      "cityName":          "Strasbourg",
+      "accommodationName": "accommodation2Strasbourg",
+      "activityNames": [
+        "activity1POI1Strasbourg",
+        "activity3POI2Strasbourg"
+      ]
+    },
+    {
+      "cityName":          "Paris",
+      "accommodationName": "accommodation3Paris",
+      "activityNames": [
+        "activity2POI1Paris",
+        "activity1POI2Paris"
+      ]
+    },
+    {
+      "cityName":          "Dijon",
+      "accommodationName": "accommodation4Dijon",
+      "activityNames": [
+        "activity1POI1Dijon",
+        "activity2POI2Dijon"
+      ]
+    }
+  ]
+}
+
+// —— 3）Create Trip（5 天） ——
+{
+  "name": "ToulouseLeHavreAmiensStrasbourgLyonTrip100",
+  "startDate": "2025-09-10",
+  "endDate":   "2025-09-14",
+  "days": [
+    {
+      "cityName":          "Toulouse",
+      "accommodationName": "accommodation1Toulouse",
+      "activityNames": [
+        "activity1POI1Toulouse",
+        "activity2POI2Toulouse"
+      ]
+    },
+    {
+      "cityName":          "LeHavre",
+      "accommodationName": "accommodation2LeHavre",
+      "activityNames": [
+        "activity1POI1LeHavre"
+      ]
+    },
+    {
+      "cityName":          "Amiens",
+      "accommodationName": "accommodation3Amiens",
+      "activityNames": [
+        "activity1POI1Amiens",
+        "activity3POI2Amiens"
+      ]
+    },
+    {
+      "cityName":          "Strasbourg",
+      "accommodationName": "accommodation4Strasbourg",
+      "activityNames": [
+        "activity2POI1Strasbourg"
+      ]
+    },
+    {
+      "cityName":          "Lyon",
+      "accommodationName": "accommodation5Lyon",
+      "activityNames": [
+        "activity1POI1Lyon",
+        "activity2POI2Lyon",
+        "activity3POI1Lyon"
+      ]
+    }
+  ]
+}
+
+// —— 4）Update Trip1（基于第1条，修改第1天增加一个活动，第3天换住宿） ——
+{
+  "name": "ParisLyonGrenobleTripUpdated100",
+  "startDate": "2025-07-10",
+  "endDate":   "2025-07-12",
+  "days": [
+    {
+      "cityName":          "Paris",
+      "accommodationName": "accommodation1Paris",
+      "activityNames": [
+        "activity1POI1Paris",
+        "activity2POI2Paris",
+        "activity3POI2Paris"
+      ]
+    },
+    {
+      "cityName":          "Lyon",
+      "accommodationName": "accommodation2Lyon",
+      "activityNames": [
+        "activity1POI1Lyon",
+        "activity3POI2Lyon"
+      ]
+    },
+    {
+      "cityName":          "Grenoble",
+      "accommodationName": "accommodation5Grenoble",
+      "activityNames": [
+        "activity2POI1Grenoble",
+        "activity1POI2Grenoble"
+      ]
+    }
+  ]
+}
+
+// —— 5）Update Trip2（基于第2条，延长一天并加到 Toulouse） ——
+{
+  "name": "LyonStrasbourgParisDijonToulouseTrip100",
+  "startDate": "2025-08-01",
+  "endDate":   "2025-08-05",
+  "days": [
+    {
+      "cityName":          "Lyon",
+      "accommodationName": "accommodation1Lyon",
+      "activityNames": [
+        "activity1POI1Lyon",
+        "activity2POI2Lyon"
+      ]
+    },
+    {
+      "cityName":          "Strasbourg",
+      "accommodationName": "accommodation2Strasbourg",
+      "activityNames": [
+        "activity1POI1Strasbourg",
+        "activity3POI2Strasbourg"
+      ]
+    },
+    {
+      "cityName":          "Paris",
+      "accommodationName": "accommodation3Paris",
+      "activityNames": [
+        "activity2POI1Paris",
+        "activity1POI2Paris"
+      ]
+    },
+    {
+      "cityName":          "Dijon",
+      "accommodationName": "accommodation4Dijon",
+      "activityNames": [
+        "activity1POI1Dijon",
+        "activity2POI2Dijon"
+      ]
+    },
+    {
+      "cityName":          "Toulouse",
+      "accommodationName": "accommodation1Toulouse",
+      "activityNames": [
+        "activity1POI1Toulouse"
+      ]
+    }
+  ]
+}
+// —— 6）Update Trip3（基于第3条，缩短为4天，去掉 Lyon） ——
+{
+  "name": "ToulouseLeHavreAmiensStrasbourgShortTrip100",
+  "startDate": "2025-09-10",
+  "endDate":   "2025-09-13",
+  "days": [
+    {
+      "cityName":          "Toulouse",
+      "accommodationName": "accommodation1Toulouse",
+      "activityNames": [
+        "activity1POI1Toulouse",
+        "activity2POI2Toulouse"
+      ]
+    },
+    {
+      "cityName":          "LeHavre",
+      "accommodationName": "accommodation2LeHavre",
+      "activityNames": [
+        "activity1POI1LeHavre"
+      ]
+    },
+    {
+      "cityName":          "Amiens",
+      "accommodationName": "accommodation3Amiens",
+      "activityNames": [
+        "activity1POI1Amiens",
+        "activity3POI2Amiens"
+      ]
+    },
+    {
+      "cityName":          "Strasbourg",
+      "accommodationName": "accommodation4Strasbourg",
+      "activityNames": [
+        "activity2POI1Strasbourg"
+      ]
+    }
+  ]
+}
+
+
