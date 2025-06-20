@@ -96,5 +96,11 @@ public class AccommodationService {
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    public AccommodationDto findByName(String name) {
+        Accommodation acc = accRepo.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Accommodation not found: " + name));
+        return mapper.toDto(acc);
+    }
 }
 

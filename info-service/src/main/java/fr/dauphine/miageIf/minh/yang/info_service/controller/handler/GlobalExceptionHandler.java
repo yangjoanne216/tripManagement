@@ -1,26 +1,18 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller.handler;
 
-import com.mongodb.MongoWriteException;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ApiError;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.BadRequestException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ConflictException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
+import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ServiceUnavailableException;
 import io.swagger.v3.oas.annotations.Hidden;
-import jakarta.validation.ConstraintViolationException;
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
 @Hidden
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -84,4 +76,16 @@ public class GlobalExceptionHandler {
         ApiError err = new ApiError("Internal server error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
     }
+
+    // 503: 外部服务不可用
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiError> handleServiceUnavailable(ServiceUnavailableException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(err);
+    }
+
 }

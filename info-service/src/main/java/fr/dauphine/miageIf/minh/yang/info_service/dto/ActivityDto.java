@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 public class ActivityDto {
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
 
     @NotBlank

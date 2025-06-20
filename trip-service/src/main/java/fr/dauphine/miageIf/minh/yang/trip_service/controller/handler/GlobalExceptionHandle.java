@@ -17,6 +17,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Hidden
 @RestControllerAdvice
@@ -65,17 +67,6 @@ public class GlobalExceptionHandle {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage()
-        );
-        return ResponseEntity.badRequest().body(err);
-    }
-
-    // 400: JSON 反序列化或类型错误
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
-        ApiError err = new ApiError(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Malformed JSON or invalid field type: " + ex.getMostSpecificCause().getMessage()
         );
         return ResponseEntity.badRequest().body(err);
     }
@@ -129,7 +120,64 @@ public class GlobalExceptionHandle {
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
     }
+    // 400: JSON 语法错误，比如输入非 JSON 或严重格式有问题
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleMalformedJson(HttpMessageNotReadableException ex) {
+        String msg = "Malformed JSON: ";
+        Throwable cause = ex.getMostSpecificCause();
+        if (cause != null) {
+            msg += cause.getMessage();
+        } else {
+            msg += ex.getMessage();
+        }
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                msg
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
 
+    // 400: 传了不认识的字段（unrecognized field）
+    @ExceptionHandler(com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.class)
+    public ResponseEntity<ApiError> handleUnrecognizedField(com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException ex) {
+        String field = ex.getPropertyName();
+        String msg = String.format("Unrecognized field '%s'. Please remove or correct it.", field);
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                msg
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 400: 字段类型不匹配，比如把字符串传给日期、数字等
+    @ExceptionHandler(com.fasterxml.jackson.databind.exc.InvalidFormatException.class)
+    public ResponseEntity<ApiError> handleInvalidFormat(com.fasterxml.jackson.databind.exc.InvalidFormatException ex) {
+        String field = ex.getPath().stream()
+                .map(ref -> ref.getFieldName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("."));
+        String targetType = ex.getTargetType().getSimpleName();
+        String msg = String.format("Invalid value for field '%s': expected type %s.", field, targetType);
+        ApiError err = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                msg
+        );
+        return ResponseEntity.badRequest().body(err);
+    }
+
+    // 503: 外部服务不可用
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiError> handleServiceUnavailable(ServiceUnavailableException ex) {
+        ApiError err = new ApiError(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(err);
+    }
     // 500: DB 未知约束或其他内部错误
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex) {

@@ -90,10 +90,12 @@ public class CityController {
      * 成功返回 201 Created + Location 头指向 /cities/{cityId} + 响应体为创建后的 City JSON
      */
     @Operation(
-            summary = "Create a new city",
+            summary = "Create a new city (test-only,for consistency please use info-service to create city)",
             description = "Create a new City node in the database. " +
                     "Request body must contain 'cityId' (String) and 'name' (String). " +
                     "Returns the created City object along with HTTP 201 Created."
+                    + "Note: this endpoint issues a cross-service write to Info-service solely for testing. "
+                    + "Such cross-service writes are NOT recommended in production. Please leave this implementation untouched."
     )
     @PostMapping
     public ResponseEntity<City> createCity(@RequestBody CreationCityRequest request) {
@@ -111,10 +113,11 @@ public class CityController {
      * 200 OK + 更新后 City JSON；若 cityId 不存在，抛 404
      */
     @Operation(
-            summary = "Update city",
+            summary = "Update city (test-only,for consistency please use info-service to update city)",
             description = "Update the 'name'/latitude/longtitude field of an existing City node identified by cityId. " +
                     "Request body must contain the new 'name',latitude,longitude. Returns the updated City object. " +
                     "If the cityId does not exist, returns HTTP 404 Not Found."
+                    + "Note: this test‐only endpoint mirrors updates into Info-service; do not modify or promote to production."
     )
     @PutMapping("/{cityId}")
     public ResponseEntity<City> updateCity(
@@ -130,9 +133,11 @@ public class CityController {
      * 删除 City 节点（及其所有关联边）。成功返回 204 No Content；若 cityId 不存在，抛 404
      */
     @Operation(
-            summary = "Delete city",
+            summary = "Delete city (test only,for consistency please use info-service to delete city)",
             description = "Delete the City node identified by cityId, along with all LOCATED_AT relationships connected to it. " +
                     "Returns HTTP 204 No Content. If the cityId does not exist, returns HTTP 404 Not Found."
+                    + "Note: deletion is propagated to Info-service for testing only; cross-service deletes should be handled by Info-service in production. "
+                    + "Please do not alter."
     )
     @DeleteMapping("/{cityId}")
     public ResponseEntity<Void> deleteCity(@PathVariable String cityId) {
