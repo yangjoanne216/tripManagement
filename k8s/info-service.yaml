@@ -25,11 +25,11 @@ kind: Service
 metadata:
   name: info-service
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: info-service
   ports:
     - protocol: TCP
       port: 8082
       targetPort: 8082
-      nodePort: 30000
+      name: http

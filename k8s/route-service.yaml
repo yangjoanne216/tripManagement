@@ -25,9 +25,11 @@ kind: Service
 metadata:
   name: route-service
 spec:
+  type: LoadBalancer
   selector:
     app: route-service
   ports:
     - protocol: TCP
       port: 8081
       targetPort: 8081
+      name: http

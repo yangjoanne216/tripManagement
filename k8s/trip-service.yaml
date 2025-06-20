@@ -25,9 +25,11 @@ kind: Service
 metadata:
   name: trip-service
 spec:
+  type: LoadBalancer
   selector:
     app: trip-service
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
+      name: http
