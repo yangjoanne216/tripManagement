@@ -1,27 +1,19 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller.handler;
 
-import com.mongodb.MongoWriteException;
 import fr.dauphine.miageIf.minh.yang.info_service.dto.ApiError;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.BadRequestException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ConflictException;
 import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;
-import jakarta.validation.ConstraintViolationException;
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.naming.ServiceUnavailableException;
-import java.util.HashMap;
-import java.util.Map;
+
 @Hidden
 @RestControllerAdvice
 public class GlobalExceptionHandler {
