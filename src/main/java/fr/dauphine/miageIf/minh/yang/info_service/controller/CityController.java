@@ -1,6 +1,7 @@
 package fr.dauphine.miageIf.minh.yang.info_service.controller;
 
 import fr.dauphine.miageIf.minh.yang.info_service.dto.*;
+import fr.dauphine.miageIf.minh.yang.info_service.exceptions.ServiceUnavailableException;
 import fr.dauphine.miageIf.minh.yang.info_service.mapper.PointOfInterestMapper;
 import fr.dauphine.miageIf.minh.yang.info_service.model.City;
 import fr.dauphine.miageIf.minh.yang.info_service.service.AccommodationService;
@@ -18,7 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import javax.naming.ServiceUnavailableException;
+
 import java.util.List;
 
 @RestController
@@ -41,7 +42,7 @@ public class CityController {
     public ResponseEntity<CityDto> create(
             @Parameter(description = "City data", required = true)
             @Valid @RequestBody CityUpdateOrCreateDto dto
-    ) throws ServiceUnavailableException {
+    ) throws ServiceUnavailableException, javax.naming.ServiceUnavailableException {
         CityDto created = service.create(dto);
         return ResponseEntity.status(201).body(created);
     }
@@ -56,7 +57,7 @@ public class CityController {
     public ResponseEntity<CityDto> update(
             @Parameter(description = "City ID", required = true) @PathVariable String id,
             @Parameter(description = "Updated city data", required = true) @Valid @RequestBody CityUpdateOrCreateDto dto
-    ) throws ServiceUnavailableException {
+    ) throws ServiceUnavailableException, javax.naming.ServiceUnavailableException {
         CityDto updated = service.update(id, dto);
         return ResponseEntity.ok(updated);
     }
@@ -67,7 +68,7 @@ public class CityController {
             @ApiResponse(responseCode = "404", description = "City not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) throws ServiceUnavailableException {
+    public ResponseEntity<Void> delete(@PathVariable String id) throws ServiceUnavailableException, javax.naming.ServiceUnavailableException {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -115,7 +116,7 @@ public class CityController {
         return pointOfInterestService.findByCityName(name);
     }
 
-    /*@Operation(
+    @Operation(
             summary = "Get activities by city name",
             description = "Retrieve all activities available in the specified city."
     )
@@ -126,7 +127,7 @@ public class CityController {
     @GetMapping("/name/{name}/activities")
     public List<ActivityDto> getActivitiesByCityName(@PathVariable String name) {
         return activityService.findByCityName(name);
-    }*/
+    }
 
     @Operation(
             summary = "Get city by name",
