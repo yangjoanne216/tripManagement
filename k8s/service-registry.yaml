@@ -1,35 +1,68 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: service-registry
-  labels:
-    app: service-registry
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: service-registry
-  template:
-    metadata:
-      labels:
-        app: service-registry
-    spec:
-      containers:
-        - name: service-registry
-          image: biquyt/service-registry:1.0
-          ports:
-            - containerPort: 8761
+  name: eureka-cm
+data:
+  eureka_service_address: "http://eureka-0.eureka:8761/eureka"
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-registry
+  name: eureka
+  labels:
+    app: eureka
 spec:
-  type: LoadBalancer
-  selector:
-    app: service-registry
+  clusterIP: None
   ports:
-    - protocol: TCP
-      port: 8761
+    - port: 8761
+      name: eureka
+  selector:
+    app: eureka
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eureka
+spec:
+  serviceName: "eureka"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+        - name: eureka
+          image: biquyt/service-registry:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8761
+          env:
+            - name: EUREKA_SERVER_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: eureka-cm
+                  key: eureka_service_address
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-lb
+  labels:
+    app: eureka
+spec:
+  selector:
+    app: eureka
+  type: NodePort
+  ports:
+    - port: 8761
       targetPort: 8761
-      name: http
