@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: route-service
-          image: biquyt/route-service:1.0
+          image: yangjoanne216/route-service:1.0
           ports:
             - containerPort: 8081
 ---

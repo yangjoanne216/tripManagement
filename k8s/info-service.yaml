@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: info-service
-          image: biquyt/info-service:1.0
+          image: yangjoanne216/info-service:1.0
           ports:
             - containerPort: 8082
 ---

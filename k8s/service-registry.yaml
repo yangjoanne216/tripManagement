@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
         - name: eureka
-          image: biquyt/service-registry:1.0
+          image: yangjoanne216/service-registry:1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8761

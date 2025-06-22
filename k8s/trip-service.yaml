@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: trip-service
-          image: biquyt/trip-service:1.0
+          image: yangjoanne216/trip-service:1.0
           ports:
             - containerPort: 8080
 ---
