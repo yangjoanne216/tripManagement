@@ -14,8 +14,8 @@ cd tripManagement
 | Méthode                                        | Étapes principales                                                                                                                                                                            |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **A · IDE (IntelliJ IDEA, Eclipse, VS Code…)** | 1. Ouvrez le dossier **`tripManagement`** dans l’IDE.<br>2. Laissez Maven télécharger les dépendances (*pom.xml*).<br>3. Démarrez chaque micro-service via la commande **Run** (▶️) de l’IDE. |
-| **B · Ligne de commande (JAR autonomes)**      | 1. Dans **`tripManagement`**, ouvrez un terminal par service.<br>2. Exécutez :<br>   `bash<br>java -jar jar/<nom_du_service>.jar<br>`                                                         |
-| **C · Si notre Kubernetes avait pu marcher, il y aurait eu cette 3ème façon de lancer l’application via Kubernettes/Minikube,ce qui est normalement le plus simple pour user**      | 1. Vérifiez que Minikube est installé.<br>2. Lancez le cluster puis appliquez les manifests :<br>   `bash<br>minikube start<br>kubectl apply -f k8s/<br>`                                     |
+| **B · Ligne de commande (JAR autonomes)**      | 1. Dans **`tripManagement`**, ouvrez un terminal par service.<br>2. Exécutez :<br>   `java -jar jar/<nom_du_service>.jar`                                                         |
+| **C · Kubernettes/Minikube**      | 1. Vérifiez que Minikube est installé.<br>2. Lancez le cluster puis appliquez les manifests :<br>   `minikube start`<br>`kubectl apply -f k8s/`<br>3. Lancer ces commandes pour pouvoir accéder aux services via localhost :<br>`kubectl port-forward svc/api-gateway 8765:8765`<br>`kubectl port-forward svc/trip-service 8080:8080`<br>`kubectl port-forward svc/info-service 8082:8082`<br>`kubectl port-forward svc/route-service 8081:8081`<br>`kubectl port-forward svc/eureka-lb 8761:8761`                                 |
 
 ---
 
